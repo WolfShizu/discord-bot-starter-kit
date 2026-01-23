@@ -6,7 +6,7 @@ from discord import Message, TextChannel, Embed
 @dataclass
 class BotResponsePayload:
     content: str
-    channel: Optional[TextChannel] = None # Envia no canal atual
+    channel_to_send: Optional[TextChannel] = None # Envia no canal atual
     embed: Optional[Embed] = None
 
 @dataclass
