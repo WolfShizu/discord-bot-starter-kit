@@ -1,18 +1,17 @@
 from dataclasses import dataclass
-from typing import Optional, Any, Callable
+from typing import Optional, Any, Callable, Awaitable
 
 from discord import Message, TextChannel, Embed
 
 @dataclass
 class BotResponsePayload:
     content: str
-    channel_to_send: Optional[TextChannel] = None # Envia no canal atual
     embed: Optional[Embed] = None
 
 @dataclass
 class UserMessagePayload:
     message: Message
-    send_message_function: Callable[[BotResponsePayload], Any]
+    send_message_function: Callable[[BotResponsePayload], Awaitable[Any]]
 
     raw_message: Optional[str] = None
     is_command: Optional[bool] = None
