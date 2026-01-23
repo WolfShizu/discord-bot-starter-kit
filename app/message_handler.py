@@ -3,8 +3,12 @@ import functools
 import discord
 
 from app.models.message_payload import UserMessagePayload, BotResponsePayload
+from app.gatekeeper import Gatekeeper
 
 class MessageHandler:
+    def __init__(self, gatekeeper: Gatekeeper):
+        self.gatekeeper = gatekeeper
+    
     async def handle_message(self, message: discord.Message):
         raw_message = message.content
 
