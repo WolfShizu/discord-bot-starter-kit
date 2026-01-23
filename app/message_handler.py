@@ -17,7 +17,8 @@ class MessageHandler:
         user_message_payload = UserMessagePayload(
             message= message,
             send_message_function= functools.partial(self.send_message, channel= message.channel),
-            raw_message= raw_message
+            raw_message= raw_message,
+            is_private_message= message.guild is None
         )
     
     async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable):
