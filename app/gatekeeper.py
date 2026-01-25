@@ -41,6 +41,10 @@ class Gatekeeper:
         }
 
     def verify_message(self, message_payload: UserMessagePayload):
+        """
+        Verifica se a mensagem tem algum conteúdo, se é um comando e as permissões do usuário.
+        Essas informações são guardadas dentro do payload.
+        """
         if message_payload.is_private_message:
             return # TODO Fazer a verificação de comando. Ainda não faz o processo de mensagens via DM
         
@@ -66,6 +70,10 @@ class Gatekeeper:
 
     
     def _set_user_access(self, message_payload: UserMessagePayload):
+        """
+        Verifica e armazena as informações de acesso do usuário.
+        Verifica se ele é um admin e se está bloqueado ou proibido de usar o canal.
+        """
         author = cast(discord.Member, message_payload.message.author)
         channel_id = message_payload.message.channel.id
         user_id = author.id
@@ -98,6 +106,9 @@ class Gatekeeper:
             return message_payload
     
     def _parse_command(self, message_payload: UserMessagePayload, bot_prefix: str):
+        """
+        Armazena o comando do bot (sem prefixo) e os argumentos
+        """
         raw_message = str(message_payload.raw_message).strip()
 
         parts = raw_message.split()
