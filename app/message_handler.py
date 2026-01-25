@@ -20,8 +20,11 @@ class MessageHandler:
             raw_message= raw_message,
             is_private_message= message.guild is None
         )
+
+        self.gatekeeper.verify_message(user_message_payload)
     
     async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable):
+        # TODO Implementar o send_to do payload
         if response_payload.embed:
             await channel.send(embed= response_payload.embed)
         await channel.send(response_payload.content)
