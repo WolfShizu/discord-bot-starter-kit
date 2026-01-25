@@ -41,10 +41,6 @@ class Gatekeeper:
         }
 
     def verify_message(self, message_payload: UserMessagePayload):
-        # DONE TODO Verificar se o usuário pode usar o bot no canal
-        # DONE TODO Verifica se a mensagem é um comando
-        # TODO Se for um comando, definir no payload que é comando, e guardar as informações do comando (comando e argumentos)
-
         if message_payload.is_private_message:
             return # TODO Fazer a verificação de comando. Ainda não faz o processo de mensagens via DM
         
@@ -54,16 +50,19 @@ class Gatekeeper:
         if not message_payload.raw_message or message_payload.raw_message.strip() == "":
             message_payload.is_command = False
             return
-
-        # Define se a mensagem é um comando com base no prefixo do servidor
+        
+        # Busca o prefixo usado pelo bot
         guild_id = message_payload.message.guild.id if message_payload.message.guild else None
         if guild_id:
-            prefix = self.guild_prefix_map.get(guild_id, self.default_prefix)
+            bot_prefix = self.guild_prefix_map.get(guild_id, self.default_prefix)
         else:
-            prefix = self.default_prefix         
+            bot_prefix = self.default_prefix         
         
-        if message_payload.raw_message.endswith(prefix):
+        # Define se a mensagem é um comando
+        if message_payload.raw_message.startswith(bot_prefix):
             message_payload.is_command = True
+
+            self._parse_command(message_payload, bot_prefix)
 
     
     def _set_user_access(self, message_payload: UserMessagePayload):
@@ -97,3 +96,11 @@ class Gatekeeper:
         if any(role_id in channel_access_map["allowed_roles"] for role_id in user_roles):
             message_payload.is_ahthorized_role = True
             return message_payload
+    
+    def _parse_command(self, message_payload: UserMessagePayload, bot_prefix: str):
+        raw_message = str(message_payload.raw_message).strip()
+
+        parts = raw_message.split()
+        raw_command = parts[0]
+        message_payload.command_name = raw_command.removeprefix(bot_prefix).lower()
+        message_payload.arguments = parts[1:]
