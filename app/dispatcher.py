@@ -1,9 +1,13 @@
+# TODO Adicionar tipagem correta para o commands e listeners
+# TODO Configurar o event type do listener
+
 from typing import Any
 
 class Dispatcher:
     def __init__(self):
         self.commands: dict[str, Any] = {}
-    
+        self.listeners: list[Any] = []
+
     def register_command(self, command_name: str, command_aliases: list[str]):
         def wrapper(command_class):
             command_instance = command_class()
@@ -17,6 +21,15 @@ class Dispatcher:
             for alias in command_instance.aliases:
                 self.commands[alias] = command_instance
 
-                return command_instance
+            return command_class
             
+        return wrapper
+    
+    def register_listener(self):
+        def wrapper(command_class):
+            command_instance = command_class()
+
+            self.listeners.append(command_instance)
+
+            return command_class
         return wrapper
