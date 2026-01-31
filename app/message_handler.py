@@ -9,7 +9,7 @@ from app.dispatcher import Dispatcher
 class MessageHandler:
     def __init__(self):
         self.gatekeeper = Gatekeeper()
-        self.Dispatcher = Dispatcher()
+        self.Dispatcher = Dispatcher(self.send_message)
     
     async def handle_message(self, message: discord.Message):
         raw_message = message.content
