@@ -12,7 +12,7 @@ class BaseCommand(ABC):
 
 
     @abstractmethod
-    async def execute(self, payload: UserMessagePayload) -> None:
+    async def execute_command(self, payload: UserMessagePayload) -> None:
         pass
     
 class BaseListener(ABC):
