@@ -1,18 +1,20 @@
 # TODO Configurar o event type do listener
 
-from typing import Any, Literal
+from typing import Any, Callable, Coroutine
 
 from app.commands.base import BaseCommand, BaseListener
 
 class Dispatcher:
-    def __init__(self):
+    def __init__(self, send_message_function: Callable[[Any, Any], Coroutine[Any, Any, None]]):
+        self.send_message_function = send_message_function
+
         self.commands_map: dict[str, Any] = {}
         self.listeners_list: list[Any] = []
 
     # <---- Decorador para registrar comandos ---->
     def register_command(self, command_name: str, command_aliases: list[str]):
         def wrapper(command_class: type[BaseCommand]):
-            command_instance = command_class()
+            command_instance = command_class(self.send_message_function)
 
             command_instance.name = command_name.lower()
             command_instance.aliases = [command.lower() for command in command_aliases]
@@ -43,7 +45,7 @@ class Dispatcher:
     # <---- Decorador para registrar listeners ---->
     def register_listener(self):
         def wrapper(command_class: type[BaseListener]):
-            command_instance = command_class()
+            command_instance = command_class(self.send_message_function)
 
             if self._verify_listener_exists(command_class):
                 raise ValueError(f"Listener '{command_class.__name__}' já registrado.") # TODO Alterar para exceção personalizada
