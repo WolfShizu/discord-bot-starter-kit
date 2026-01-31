@@ -1,15 +1,10 @@
 import discord
 
 from app.message_handler import MessageHandler
-from app.gatekeeper import Gatekeeper
 
 class DiscordClient(discord.Client):
-    def __init__(self):
-        self.gatekeeper = Gatekeeper()
-        
-        self.message_handler = MessageHandler(
-            gatekeeper = self.gatekeeper
-        )
+    def __init__(self):        
+        self.message_handler = MessageHandler()
 
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
