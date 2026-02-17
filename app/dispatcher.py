@@ -46,4 +46,9 @@ class Dispatcher:
             self.commands_map[alias] = command_object
 
     def register_listener(self, listener_class: Type[BaseListener]):
-        ...
+        listener_object = listener_class()
+
+        if listener_object in self.listeners_list:
+            raise ValueError(f"Listener {listener_object.listener_name} já registrado!")
+
+        self.listeners_list.append(listener_object)
