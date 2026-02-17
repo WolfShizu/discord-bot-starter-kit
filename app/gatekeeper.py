@@ -98,11 +98,11 @@ class Gatekeeper:
             return message_payload
         
         if any(role_id in channel_access_map["denied_roles"] for role_id in user_roles):
-            message_payload.is_ahthorized_role = False
+            message_payload.is_authorized_role = False
             return message_payload
         
         if any(role_id in channel_access_map["allowed_roles"] for role_id in user_roles):
-            message_payload.is_ahthorized_role = True
+            message_payload.is_authorized_role = True
             return message_payload
     
     def _parse_command(self, message_payload: UserMessagePayload, bot_prefix: str):
