@@ -12,6 +12,8 @@ class BaseCommand(ABC):
         pass
 
 class BaseListener(ABC):
+    listener_name: str = ""
+
     @abstractmethod
     async def handle_event(self, payload: UserMessagePayload) -> None:
         pass
