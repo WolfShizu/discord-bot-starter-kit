@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from typing import Optional, Any, Callable, Awaitable
 
-from discord import Message, TextChannel, Embed
+from discord import Message, Embed
 
 @dataclass
 class BotResponsePayload:
     content: str
     embed: Optional[Embed] = None
+    reply_author = None # TODO Finalizar implementação
 
 @dataclass
 class UserMessagePayload:
@@ -21,5 +22,5 @@ class UserMessagePayload:
     arguments: Optional[list[str]] = None
 
     is_admin_role: Optional[bool] = None
-    is_ahthorized_role: Optional[bool] = None
+    is_authorized_role: Optional[bool] = None
     is_authorized_user: Optional[bool] = None
