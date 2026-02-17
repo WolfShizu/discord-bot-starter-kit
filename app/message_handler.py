@@ -7,13 +7,17 @@ from app.gatekeeper import Gatekeeper
 from app.dispatcher import Dispatcher
 
 class MessageHandler:
+    """
+    Classe principal responsável por gerenciar as mensagens. Envia o payload do usuário
+    para as outras funções, além de gerenciar o envio de mensagens do bot
+    """
     def __init__(self):
         self.gatekeeper = Gatekeeper()
         self.dispatcher = Dispatcher(self.send_message)
-    
+
     async def handle_message(self, message: discord.Message):
         raw_message = message.content
-        
+
         user_message_payload = UserMessagePayload(
             message= message,
             send_message_function= functools.partial(self.send_message, channel= message.channel),
@@ -24,7 +28,7 @@ class MessageHandler:
         self.gatekeeper.verify_message(user_message_payload)
 
         await self.dispatcher.dispatch(user_message_payload)
-    
+
     async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable):
         """
         Função para envio de mensagens utilizada pelos comandos e listeners
