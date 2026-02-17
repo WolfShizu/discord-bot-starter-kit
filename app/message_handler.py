@@ -53,7 +53,7 @@ class MessageHandler:
         # Caminho: app/commands/instances
         commands_path = os.path.join(os.path.dirname(__file__), "commands", "instances")
 
-        for root, directories, files in os.walk(commands_path):
+        for root, _, files in os.walk(commands_path):
             for file in files:
                 if file.endswith(".py") and file not in ["base.py", "__init__.py"]:
                     relative_path = os.path.relpath(os.path.join(root, file), os.path.dirname(__file__))

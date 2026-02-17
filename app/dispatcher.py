@@ -1,7 +1,7 @@
 # TODO Configurar o event type do listener
 # TODO Configurar o listener type do Listener, para definir se ele deve vir antes ou depois de comandos, ou se ele não deve ser chamado caso um comando seja executado
 
-from typing import Any, Callable, Coroutine, Type
+from typing import Any, Type
 
 from app.commands.base import BaseCommand, BaseListener
 from app.models.message_payload import UserMessagePayload
