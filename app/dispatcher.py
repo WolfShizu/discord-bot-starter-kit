@@ -10,9 +10,7 @@ class Dispatcher:
     """
     Classe responsável por enviar os payloads para as funções, além de registrá-los
     """
-    def __init__(self, send_message_function: Callable[[Any, Any], Coroutine[Any, Any, None]]):
-        self.send_message_function = send_message_function
-
+    def __init__(self):
         self.commands_map: dict[str, Any] = {}
         self.listeners_list: list[Any] = [] # TODO Alterar para dicionário para acomodar os events types e listener types
 

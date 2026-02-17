@@ -13,7 +13,7 @@ class MessageHandler:
     """
     def __init__(self):
         self.gatekeeper = Gatekeeper()
-        self.dispatcher = Dispatcher(self.send_message)
+        self.dispatcher = Dispatcher()
 
     async def handle_message(self, message: discord.Message):
         raw_message = message.content
