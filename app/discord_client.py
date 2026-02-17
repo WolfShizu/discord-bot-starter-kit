@@ -3,7 +3,7 @@ import discord
 from app.message_handler import MessageHandler
 
 class DiscordClient(discord.Client):
-    def __init__(self):        
+    def __init__(self):
         self.message_handler = MessageHandler()
 
         # Configura os privilégios do bot e o que ele receberá
@@ -13,10 +13,10 @@ class DiscordClient(discord.Client):
         intents.presences = True
 
         super().__init__(intents=intents)
-    
+
     # <---- Primeiro evento de conexão ---->
     async def on_ready(self) -> None:
-        ...
+        print("Bot ligado com sucesso!")
 
     # <---- Eventos de Mensagens ---->
     async def on_message(self, message: discord.Message):
@@ -25,17 +25,17 @@ class DiscordClient(discord.Client):
 
         await self.message_handler.handle_message(message)
 
-    
+
     async def on_message_edit(self, message):
         ...
-    
+
     async def on_message_delete(self, message):
         ...
 
     async def on_raw_message_delete(self, message):
         """Para mensagens antigas que não estão no cache do bot"""
         ...
-    
+
     # <---- Eventos de Conexão ---->
     async def on_connect(self):
         """Chamado quando o bot se conecta, seja na primeira conexão ou após uma queda"""
@@ -48,11 +48,11 @@ class DiscordClient(discord.Client):
     async def on_resumed(self):
         """Quando o bot se desconecta, mas retorna a conexão rapidamente, sem perder o cache"""
         ...
-    
+
     # <---- Eventos de Membros e Servidores ---->
     async def on_member_join(self, member):
         ...
-    
+
     async def on_member_remove(self, member):
         """Quando um usuário saiu ou foi expulso"""
         ...
@@ -60,7 +60,7 @@ class DiscordClient(discord.Client):
     async def on_member_update(self, before, after):
         """Mudança de cargo, apelido ou status"""
         ...
-    
+
     async def on_guild_join(self, guild):
         """O bot foi adicionado em um servidor"""
         ...
@@ -68,8 +68,7 @@ class DiscordClient(discord.Client):
     # <---- Eventos de Reação e Interação ---->
     async def on_reaction_add(self, reaction, user):
         ...
-    
+
     async def on_interaction(self, interaction):
         """Alguém usou slash command ou um botão"""
         ...
-        
