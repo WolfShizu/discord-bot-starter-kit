@@ -31,7 +31,7 @@ class Dispatcher:
 
         command_name = command_object.command_name.lower()
 
-        if self._verifiy_command_exists(command_name):
+        if command_name in self.commands_map:
             raise ValueError(f"Comando {command_name} já registrado!")
 
         self.commands_map[command_name] = command_object
@@ -40,16 +40,10 @@ class Dispatcher:
         command_aliases = [alias.lower() for alias in command_aliases]
 
         for alias in command_aliases:
-            if self._verifiy_command_exists(alias):
+            if alias in self.commands_map:
                 raise ValueError(f"Alias {alias} já registrado!")
 
             self.commands_map[alias] = command_object
-
-    def _verifiy_command_exists(self, command_name: str) -> bool:
-        if command_name in self.commands_map:
-            return True
-
-        return False
 
     def register_listener(self, listener_class: Type[BaseListener]):
         ...
