@@ -17,14 +17,14 @@ class Dispatcher:
     async def dispatch(self, message_payload: UserMessagePayload):
         # Passa a mensagem para os listeners
         for listener in self.listeners_list:
-            listener.handle_event(message_payload)
+            await listener.handle_event(message_payload)
 
         # Executa o comando, se houver
         if message_payload.is_command and isinstance(message_payload.command_name, str):
             command = self.commands_map.get(message_payload.command_name.lower())
 
             if command:
-                command.execute_command(message_payload)
+                await command.execute_command(message_payload)
 
     def register_command(self, command_classe: Type[BaseCommand]):
         command_object = command_classe()
