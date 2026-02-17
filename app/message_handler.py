@@ -1,8 +1,14 @@
 import functools
+import os
+import importlib
+import inspect
 
 import discord
 
 from app.models.message_payload import UserMessagePayload, BotResponsePayload
+
+from app.commands.base import BaseCommand, BaseListener
+
 from app.gatekeeper import Gatekeeper
 from app.dispatcher import Dispatcher
 
@@ -14,6 +20,8 @@ class MessageHandler:
     def __init__(self):
         self.gatekeeper = Gatekeeper()
         self.dispatcher = Dispatcher()
+
+        self._load_commands_and_listeners()
 
     async def handle_message(self, message: discord.Message):
         raw_message = message.content
@@ -37,3 +45,34 @@ class MessageHandler:
         if response_payload.embed:
             await channel.send(embed= response_payload.embed)
         await channel.send(response_payload.content)
+
+    def _load_commands_and_listeners(self):
+        """
+        Busca e registra todos os comandos e listeners em app/commands
+        """
+        # Caminho: app/commands/instances
+        commands_path = os.path.join(os.path.dirname(__file__), "commands", "instances")
+
+        for root, directories, files in os.walk(commands_path):
+            for file in files:
+                if file.endswith(".py") and file not in ["base.py", "__init__.py"]:
+                    relative_path = os.path.relpath(os.path.join(root, file), os.path.dirname(__file__))
+                    module_path = "app." + relative_path.replace(os.sep, ".").removesuffix(".py")
+
+                    try:
+                        module = importlib.import_module(module_path)
+
+                        for _, object_class in inspect.getmembers(module):
+                            if (
+                                inspect.isclass(object_class) and
+                                not inspect.isabstract(object_class)
+                            ):
+                                if issubclass(object_class, BaseCommand):
+                                    if getattr(object_class, "command_name", None):
+                                        self.dispatcher.register_command(object_class)
+
+                                if issubclass(object_class, BaseListener):
+                                    self.dispatcher.register_listener(object_class)
+
+                    except Exception as error:
+                        print(f"Erro ao carregar módulo: {module_path}: {error}")
