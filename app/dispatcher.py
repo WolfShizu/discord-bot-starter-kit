@@ -3,7 +3,8 @@
 
 from typing import Any, Type
 
-from app.commands.base import BaseCommand, BaseListener
+from app.features.commands.base_command import BaseCommand
+from app.features.listeners.base_listener import BaseListener
 from app.models.message_payload import UserMessagePayload
 
 class Dispatcher:

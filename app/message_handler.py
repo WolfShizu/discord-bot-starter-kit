@@ -7,7 +7,8 @@ import discord
 
 from app.models.message_payload import UserMessagePayload, BotResponsePayload
 
-from app.commands.base import BaseCommand, BaseListener
+from app.features.commands.base_command import BaseCommand
+from app.features.listeners.base_listener import BaseListener
 
 from app.gatekeeper import Gatekeeper
 from app.dispatcher import Dispatcher
@@ -51,7 +52,7 @@ class MessageHandler:
         Busca e registra todos os comandos e listeners em app/commands
         """
         # Caminho: app/commands/instances
-        commands_path = os.path.join(os.path.dirname(__file__), "commands", "instances")
+        commands_path = os.path.join(os.path.dirname(__file__), "features")
 
         for root, _, files in os.walk(commands_path):
             for file in files:
@@ -67,11 +68,12 @@ class MessageHandler:
                                 inspect.isclass(object_class) and
                                 not inspect.isabstract(object_class)
                             ):
-                                if issubclass(object_class, BaseCommand):
+                                if issubclass(object_class, BaseCommand) and object_class is not BaseCommand:
+                                    # TODO Adicionar aviso para comandos sem nome
                                     if getattr(object_class, "command_name", None):
                                         self.dispatcher.register_command(object_class)
 
-                                if issubclass(object_class, BaseListener):
+                                if issubclass(object_class, BaseListener) and object_class is not BaseListener:
                                     self.dispatcher.register_listener(object_class)
 
                     except Exception as error:

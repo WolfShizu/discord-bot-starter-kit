@@ -9,10 +9,3 @@ class BaseCommand(ABC):
     @abstractmethod
     async def execute_command(self, payload: UserMessagePayload) -> None:
         pass
-
-class BaseListener(ABC):
-    listener_name: str = ""
-
-    @abstractmethod
-    async def handle_event(self, payload: UserMessagePayload) -> None:
-        pass
