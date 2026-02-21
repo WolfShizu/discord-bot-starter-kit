@@ -5,6 +5,7 @@ from typing import Any, Type
 
 from app.features.commands.base_command import BaseCommand
 from app.features.listeners.base_listener import BaseListener
+from app.features.listeners.enums import ListenerEventType
 from app.models.message_payload import UserMessagePayload
 
 class Dispatcher:
@@ -13,11 +14,11 @@ class Dispatcher:
     """
     def __init__(self):
         self.commands_map: dict[str, Any] = {}
-        self.listeners_list: list[Any] = [] # TODO Alterar para dicionário para acomodar os events types e listener types
+        self.listener_map = {event_type: [] for event_type in ListenerEventType}
 
-    async def dispatch(self, message_payload: UserMessagePayload):
+    async def dispatch_message(self, message_payload: UserMessagePayload):
         # Passa a mensagem para os listeners
-        for listener in self.listeners_list:
+        for listener in self.listener_map[ListenerEventType.MESSAGE]:
             await listener.handle_event(message_payload)
 
         # Executa o comando, se houver
@@ -47,9 +48,14 @@ class Dispatcher:
             self.commands_map[alias] = command_object
 
     def register_listener(self, listener_class: Type[BaseListener]):
-        listener_object = listener_class()
+        # TODO Permitir que um listener seja registrado em múltiplos tipos
+        # TODO Exigir que um listener tenha nome para fins de log. Deve avisar que o listener não possui um nome, localizar ele e
+        # pular para o próximo
 
-        if listener_object in self.listeners_list:
+        listener_object = listener_class()
+        listener_type = listener_object.listener_type
+
+        if listener_object in self.listener_map[listener_type]:
             raise ValueError(f"Listener {listener_object.listener_name} já registrado!")
 
-        self.listeners_list.append(listener_object)
+        self.listener_map[listener_type].append(listener_object)

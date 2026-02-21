@@ -36,7 +36,7 @@ class MessageHandler:
 
         self.gatekeeper.verify_message(user_message_payload)
 
-        await self.dispatcher.dispatch(user_message_payload)
+        await self.dispatcher.dispatch_message(user_message_payload)
 
     async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable):
         """
