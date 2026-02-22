@@ -45,29 +45,30 @@ class MessageHandler:
         """
         Função para envio de mensagens utilizada pelos comandos e listeners
         """
+        send_kwargs = {}
         if response_payload.reply_to:
             channel_id = cast(int, getattr(channel, "id", None))
-            if not channel_id:
+            if channel_id:
+                reference = discord.MessageReference(
+                    message_id= response_payload.reply_to,
+                    channel_id= channel_id
+                )
+                send_kwargs["reference"] = reference
+            else:
                 # TODO Tratar corretamente o erro
-                print("Erro: O canal fornecido não tem um ID válido para referência de mensagem. (message_handler.send_message)")
-                return
-
-            reference = discord.MessageReference(
-                message_id= response_payload.reply_to,
-                channel_id= channel_id
-            )
-            if response_payload.embed:
-                await channel.send(embed= response_payload.embed, reference= reference)
-                return
-
-            await channel.send(response_payload.content, reference= reference)
-            return
+                print("Aviso: Não foi possível obter o ID do canal para criar a referência da mensagem. Enviando sem referência.")
 
         if response_payload.embed:
-            await channel.send(embed= response_payload.embed)
-            return
+            send_kwargs["embed"] = response_payload.embed
 
-        await channel.send(response_payload.content)
+        if response_payload.content:
+            send_kwargs["content"] = response_payload.content
+
+        try:
+            await channel.send(**send_kwargs)
+        except Exception as error:
+            # TODO Tratar corretamente o erro
+            print(f"Falha no envio de mensagem: {error}")
         return
 
 
