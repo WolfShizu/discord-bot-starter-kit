@@ -15,6 +15,7 @@ class Dispatcher:
     def __init__(self):
         self.commands_map: dict[str, Any] = {}
         self.listener_map = {event_type: [] for event_type in ListenerEventType}
+        self.registered_names = set()
 
     async def dispatch_message(self, message_payload: UserMessagePayload):
         # Passa a mensagem para os listeners
@@ -48,14 +49,22 @@ class Dispatcher:
             self.commands_map[alias] = command_object
 
     def register_listener(self, listener_class: Type[BaseListener]):
-        # TODO Permitir que um listener seja registrado em múltiplos tipos
-        # TODO Exigir que um listener tenha nome para fins de log. Deve avisar que o listener não possui um nome, localizar ele e
-        # pular para o próximo
-
         listener_object = listener_class()
-        listener_type = listener_object.listener_type
+        raw_types = listener_object.listener_type
+        listener_name = listener_object.listener_name
 
-        if listener_object in self.listener_map[listener_type]:
-            raise ValueError(f"Listener {listener_object.listener_name} já registrado!")
+        if not listener_name:
+            raise ValueError(f"Listener {listener_class.__name__} não possui um nome definido!")
 
-        self.listener_map[listener_type].append(listener_object)
+        if listener_name in self.registered_names:
+            raise ValueError(f"Listener com o nome {listener_name} já registrado!")
+
+        self.registered_names.add(listener_name)
+
+        types_to_register = raw_types if isinstance(raw_types, (list, tuple, set)) else [raw_types]
+
+        for listener_type in types_to_register:
+            if listener_object in self.listener_map[listener_type]:
+                continue
+
+            self.listener_map[listener_type].append(listener_object)
