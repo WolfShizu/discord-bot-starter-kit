@@ -2,6 +2,7 @@ import functools
 import os
 import importlib
 import inspect
+from typing import cast
 
 import discord
 
@@ -26,11 +27,13 @@ class MessageHandler:
 
     async def handle_message(self, message: discord.Message):
         raw_message = message.content
+        message_id = message.id
 
         user_message_payload = UserMessagePayload(
             message= message,
             send_message_function= functools.partial(self.send_message, channel= message.channel),
             raw_message= raw_message,
+            message_id = message_id,
             is_private_message= message.guild is None
         )
 
@@ -42,11 +45,31 @@ class MessageHandler:
         """
         Função para envio de mensagens utilizada pelos comandos e listeners
         """
-        # TODO Implementar o send_to do payload
+        if response_payload.reply_to:
+            channel_id = cast(int, getattr(channel, "id", None))
+            if not channel_id:
+                # TODO Tratar corretamente o erro
+                print("Erro: O canal fornecido não tem um ID válido para referência de mensagem. (message_handler.send_message)")
+                return
+
+            reference = discord.MessageReference(
+                message_id= response_payload.reply_to,
+                channel_id= channel_id
+            )
+            if response_payload.embed:
+                await channel.send(embed= response_payload.embed, reference= reference)
+                return
+
+            await channel.send(response_payload.content, reference= reference)
+            return
+
         if response_payload.embed:
             await channel.send(embed= response_payload.embed)
-        else:
-            await channel.send(response_payload.content)
+            return
+
+        await channel.send(response_payload.content)
+        return
+
 
     def _load_commands_and_listeners(self):
         """
