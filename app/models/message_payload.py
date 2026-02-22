@@ -1,26 +1,28 @@
 from dataclasses import dataclass
-from typing import Optional, Any, Callable, Awaitable
+from typing import Any, Callable, Awaitable
 
 from discord import Message, Embed
 
 @dataclass
 class BotResponsePayload:
     content: str
-    embed: Optional[Embed] = None
-    reply_author = None # TODO Finalizar implementação
+    embed: Embed | None = None
+    reply_to: int | None = None
 
 @dataclass
 class UserMessagePayload:
     message: Message
     send_message_function: Callable[[BotResponsePayload], Awaitable[Any]]
 
-    is_private_message: Optional[bool] = None
+    message_id: int
+    raw_message: str | None = None
 
-    raw_message: Optional[str] = None
-    is_command: Optional[bool] = None
-    command_name: Optional[str] = None
-    arguments: Optional[list[str]] = None
+    is_private_message: bool | None = None
 
-    is_admin_role: Optional[bool] = None
-    is_authorized_role: Optional[bool] = None
-    is_authorized_user: Optional[bool] = None
+    is_command: bool | None = None
+    command_name: str | None = None
+    arguments: list[str] | None = None
+
+    is_admin_role: bool | None = None
+    is_authorized_role: bool | None = None
+    is_authorized_user: bool | None = None
