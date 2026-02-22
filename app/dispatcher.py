@@ -64,6 +64,9 @@ class Dispatcher:
         types_to_register = raw_types if isinstance(raw_types, (list, tuple, set)) else [raw_types]
 
         for listener_type in types_to_register:
+            if not isinstance(listener_type, ListenerEventType):
+                raise ValueError(f"Listener {listener_name} ({listener_class.__name__}) está com o tipo errado!")
+
             if listener_object in self.listener_map[listener_type]:
                 continue
 
