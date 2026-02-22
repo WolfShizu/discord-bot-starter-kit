@@ -36,7 +36,7 @@ class MessageHandler:
 
         self.gatekeeper.verify_message(user_message_payload)
 
-        await self.dispatcher.dispatch(user_message_payload)
+        await self.dispatcher.dispatch_message(user_message_payload)
 
     async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable):
         """
@@ -45,13 +45,14 @@ class MessageHandler:
         # TODO Implementar o send_to do payload
         if response_payload.embed:
             await channel.send(embed= response_payload.embed)
-        await channel.send(response_payload.content)
+        else:
+            await channel.send(response_payload.content)
 
     def _load_commands_and_listeners(self):
         """
         Busca e registra todos os comandos e listeners em app/commands
         """
-        # Caminho: app/commands/instances
+        # Caminho: app/features
         commands_path = os.path.join(os.path.dirname(__file__), "features")
 
         for root, _, files in os.walk(commands_path):

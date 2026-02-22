@@ -5,6 +5,7 @@ from typing import Any, Type
 
 from app.features.commands.base_command import BaseCommand
 from app.features.listeners.base_listener import BaseListener
+from app.features.listeners.enums import ListenerEventType
 from app.models.message_payload import UserMessagePayload
 
 class Dispatcher:
@@ -13,11 +14,12 @@ class Dispatcher:
     """
     def __init__(self):
         self.commands_map: dict[str, Any] = {}
-        self.listeners_list: list[Any] = [] # TODO Alterar para dicionário para acomodar os events types e listener types
+        self.listener_map = {event_type: [] for event_type in ListenerEventType}
+        self.registered_names = set()
 
-    async def dispatch(self, message_payload: UserMessagePayload):
+    async def dispatch_message(self, message_payload: UserMessagePayload):
         # Passa a mensagem para os listeners
-        for listener in self.listeners_list:
+        for listener in self.listener_map[ListenerEventType.MESSAGE]:
             await listener.handle_event(message_payload)
 
         # Executa o comando, se houver
@@ -48,8 +50,24 @@ class Dispatcher:
 
     def register_listener(self, listener_class: Type[BaseListener]):
         listener_object = listener_class()
+        raw_types = listener_object.listener_type
+        listener_name = listener_object.listener_name
 
-        if listener_object in self.listeners_list:
-            raise ValueError(f"Listener {listener_object.listener_name} já registrado!")
+        if not listener_name:
+            raise ValueError(f"Listener {listener_class.__name__} não possui um nome definido!")
 
-        self.listeners_list.append(listener_object)
+        if listener_name in self.registered_names:
+            raise ValueError(f"Listener com o nome {listener_name} já registrado!")
+
+        self.registered_names.add(listener_name)
+
+        types_to_register = raw_types if isinstance(raw_types, (list, tuple, set)) else [raw_types]
+
+        for listener_type in types_to_register:
+            if not isinstance(listener_type, ListenerEventType):
+                raise ValueError(f"Listener {listener_name} ({listener_class.__name__}) está com o tipo errado!")
+
+            if listener_object in self.listener_map[listener_type]:
+                continue
+
+            self.listener_map[listener_type].append(listener_object)
