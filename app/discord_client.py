@@ -16,7 +16,19 @@ class DiscordClient(discord.Client):
 
     # <---- Primeiro evento de conexão ---->
     async def on_ready(self) -> None:
-        print("Bot ligado com sucesso!")
+        if isinstance(self.user, discord.ClientUser):
+            bot_name = self.user.name
+            bot_id = self.user.id
+            total_guilds = len(self.guilds)
+
+            print("=" * 30)
+            print("SISTEMA ONLINE")
+            print(f"Bot: {bot_name}")
+            print(f"Bot ID: {bot_id}")
+            print(f"Total de servidores: {total_guilds}")
+            print("=" * 30)
+        else:
+            print("Falha ao obter informações do bot")
 
     # <---- Eventos de Mensagens ---->
     async def on_message(self, message: discord.Message):
