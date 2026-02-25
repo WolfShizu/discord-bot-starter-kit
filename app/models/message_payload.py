@@ -15,6 +15,9 @@ class UserMessagePayload:
     send_message_function: Callable[[BotResponsePayload], Awaitable[Any]]
 
     message_id: int
+    author_id: int
+    guild_id: int | None
+
     raw_message: str | None = None
 
     is_private_message: bool | None = None
