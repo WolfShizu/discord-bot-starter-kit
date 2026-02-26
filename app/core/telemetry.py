@@ -1,3 +1,8 @@
+# TODO as features devem retornar para o dispatcher um payload com dados de telemetria customizados
+# E o Telemetry deve ser capaz de tratar esses dados corretamente
+# Os dados que serão recebidos devem ser registrados e configurados (se devem aparecer no terminal, se deve ser contado, etc)
+# Também terá um aviso caso algum dado não esteja registrado
+
 from dataclasses import dataclass, field
 from datetime import datetime
 
