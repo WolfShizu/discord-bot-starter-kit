@@ -22,3 +22,22 @@ class TelemetryBatchFeaturePayload:
     total_execution_time: float | None = None
     features_executed: list[TelemetryFeaturePayload] = field(default_factory= list)
     timestamp: datetime = field(default_factory= datetime.now)
+
+class Telemetry:
+    def __init__(self):
+        self.total_data_recorded = 0
+
+    async def record_batch(self, telemetry_data: TelemetryBatchFeaturePayload):
+        self.total_data_recorded += 1
+        data = {
+            "message_id": telemetry_data.message_id,
+            "total_execution_time": telemetry_data.total_execution_time,
+            "features_executed": len(telemetry_data.features_executed),
+            "timestamp": telemetry_data.timestamp
+        }
+        print("=" * 20)
+        print(f"Data N° {self.total_data_recorded}")
+        print(f"message id: {data['message_id']}")
+        print(f"total execution time: {data["total_execution_time"]}")
+        print(f"features executed: {data["features_executed"]}")
+        print("=" * 20)
