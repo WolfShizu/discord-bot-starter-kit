@@ -16,6 +16,7 @@ class UserMessagePayload:
 
     message_id: int
     author_id: int
+    channel_id: int
     guild_id: int | None
 
     raw_message: str | None = None
