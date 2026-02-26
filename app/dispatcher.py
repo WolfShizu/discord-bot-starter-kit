@@ -11,7 +11,7 @@ from app.features.listeners.enums import ListenerEventType
 
 from app.models.message_payload import UserMessagePayload
 
-from app.core.telemetry import Telemetry, TelemetryFeaturePayload
+from app.core.telemetry import Telemetry, TelemetryFeaturePayload, TelemetryBatchFeaturePayload
 from app.core.types import FeatureType
 
 class Dispatcher:
@@ -26,22 +26,35 @@ class Dispatcher:
         self.telemetry = Telemetry()
 
     async def dispatch_message(self, message_payload: UserMessagePayload):
+        telemetry_batch = TelemetryBatchFeaturePayload(
+            user_id= message_payload.author_id,
+            guild_id= message_payload.guild_id,
+            message_id= message_payload.message_id,
+        )
+        start_time = time.perf_counter()
         # Passa a mensagem para os listeners
         for listener in self.listener_map[ListenerEventType.MESSAGE]:
-            await self._execute_listener(
+            listener_telemetry = await self._execute_listener(
                 listener= listener,
                 payload= message_payload
             )
+
+            telemetry_batch.features_executed.append(listener_telemetry)
 
         # Executa o comando, se houver
         if message_payload.is_command and isinstance(message_payload.command_name, str):
             command = self.commands_map.get(message_payload.command_name.lower())
 
             if command:
-                await self._execute_command(
+                command_telemetry = await self._execute_command(
                     command= command,
                     payload= message_payload
                 )
+                telemetry_batch.features_executed.append(command_telemetry)
+
+        duration = (time.perf_counter() - start_time) * 1000
+        telemetry_batch.total_execution_time = duration
+        await self.telemetry.record_batch(telemetry_batch)
 
     async def _execute_command(self, command: BaseCommand, payload: UserMessagePayload):
         start_time = time.perf_counter()
@@ -69,7 +82,7 @@ class Dispatcher:
                 error_type = error_type
             )
 
-            await self.telemetry.record(telemetry_data)
+            return telemetry_data
 
     async def _execute_listener(self, listener: BaseListener, payload: UserMessagePayload):
         start_time = time.perf_counter()
@@ -97,7 +110,7 @@ class Dispatcher:
                 error_type = error_type
             )
 
-            await self.telemetry.record(telemetry_data)
+            return telemetry_data
 
     def register_command(self, command_classe: Type[BaseCommand]):
         command_object = command_classe()
