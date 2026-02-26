@@ -19,6 +19,6 @@ class TelemetryBatchFeaturePayload:
     message_id: int
     user_id: int
     guild_id: int | None
-    total_execution_time: float
+    total_execution_time: float | None = None
     features_executed: list[TelemetryFeaturePayload] = field(default_factory= list)
     timestamp: datetime = field(default_factory= datetime.now)
