@@ -1,6 +1,6 @@
 from app.core.types import ExceptionSeverity
 
-class BaseException(Exception):
+class GlobalException(Exception):
     def __init__(
             self,
             message: str,
