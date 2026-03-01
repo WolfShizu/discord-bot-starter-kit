@@ -32,6 +32,9 @@ class MessageHandler:
         user_message_payload = UserMessagePayload(
             message= message,
             send_message_function= functools.partial(self.send_message, channel= message.channel),
+            author_id= message.author.id,
+            channel_id= message.channel.id,
+            guild_id= message.guild.id if message.guild else None,
             raw_message= raw_message,
             message_id = message_id,
             is_private_message= message.guild is None

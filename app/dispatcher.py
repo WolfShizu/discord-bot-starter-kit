@@ -2,11 +2,17 @@
 # TODO Configurar o listener type do Listener, para definir se ele deve vir antes ou depois de comandos, ou se ele não deve ser chamado caso um comando seja executado
 
 from typing import Any, Type
+import time
 
 from app.features.commands.base_command import BaseCommand
 from app.features.listeners.base_listener import BaseListener
+
 from app.features.listeners.enums import ListenerEventType
+
 from app.models.message_payload import UserMessagePayload
+
+from app.core.telemetry import Telemetry, TelemetryFeaturePayload, TelemetryBatchFeaturePayload
+from app.core.types import FeatureType
 
 class Dispatcher:
     """
@@ -17,17 +23,94 @@ class Dispatcher:
         self.listener_map = {event_type: [] for event_type in ListenerEventType}
         self.registered_names = set()
 
+        self.telemetry = Telemetry()
+
     async def dispatch_message(self, message_payload: UserMessagePayload):
+        telemetry_batch = TelemetryBatchFeaturePayload(
+            user_id= message_payload.author_id,
+            guild_id= message_payload.guild_id,
+            message_id= message_payload.message_id,
+        )
+        start_time = time.perf_counter()
         # Passa a mensagem para os listeners
         for listener in self.listener_map[ListenerEventType.MESSAGE]:
-            await listener.handle_event(message_payload)
+            listener_telemetry = await self._execute_listener(
+                listener= listener,
+                payload= message_payload
+            )
+
+            telemetry_batch.features_executed.append(listener_telemetry)
 
         # Executa o comando, se houver
         if message_payload.is_command and isinstance(message_payload.command_name, str):
             command = self.commands_map.get(message_payload.command_name.lower())
 
             if command:
-                await command.execute_command(message_payload)
+                command_telemetry = await self._execute_command(
+                    command= command,
+                    payload= message_payload
+                )
+                telemetry_batch.features_executed.append(command_telemetry)
+
+        duration = (time.perf_counter() - start_time) * 1000
+        telemetry_batch.total_execution_time = duration
+        await self.telemetry.record_batch(telemetry_batch)
+
+    async def _execute_command(self, command: BaseCommand, payload: UserMessagePayload):
+        start_time = time.perf_counter()
+        sucess = False
+        error_type = None
+
+        try:
+            await command.execute_command(payload)
+            sucess = True
+
+        except Exception as error:
+            error_type = type(error).__name__
+            raise error
+
+        finally:
+            duration = (time.perf_counter() - start_time) * 1000
+
+            telemetry_data = TelemetryFeaturePayload(
+                feature_type= FeatureType.COMMAND,
+                feature_name= command.command_name,
+                execution_time= duration,
+                success= sucess,
+                user_id= payload.author_id,
+                guild_id= payload.guild_id,
+                error_type = error_type
+            )
+
+            return telemetry_data
+
+    async def _execute_listener(self, listener: BaseListener, payload: UserMessagePayload):
+        start_time = time.perf_counter()
+        sucess = False
+        error_type = None
+
+        try:
+            await listener.handle_event(payload)
+            sucess = True
+
+        except Exception as error:
+            error_type = type(error).__name__
+            raise error
+
+        finally:
+            duration = (time.perf_counter() - start_time) * 1000
+
+            telemetry_data = TelemetryFeaturePayload(
+                feature_type= FeatureType.LISTENER,
+                feature_name= listener.listener_name,
+                execution_time= duration,
+                success= sucess,
+                user_id= payload.author_id,
+                guild_id= payload.guild_id,
+                error_type = error_type
+            )
+
+            return telemetry_data
 
     def register_command(self, command_classe: Type[BaseCommand]):
         command_object = command_classe()
