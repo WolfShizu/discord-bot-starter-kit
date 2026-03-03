@@ -99,7 +99,7 @@ class DiscordClient(discord.Client):
             await self.exception_handler.handle_exception(
                 discord_event=event_method,
                 event_arguments=args,
-                exception_value=error_value,
+                exception=error_value,
                 traceback=error_traceback
             )
 
@@ -108,6 +108,6 @@ class DiscordClient(discord.Client):
         await self.exception_handler.handle_exception(
             discord_event= "slash_command",
             event_arguments= tuple([interaction]),
-            exception_value= exception,
+            exception= exception,
             traceback= exception.__traceback__
         )
