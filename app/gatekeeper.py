@@ -4,11 +4,13 @@ import discord
 
 from app.models.message_payload import UserMessagePayload
 
+from core.exceptions.exception_handler import ExceptionHandler
+
 class Gatekeeper:
     """
     Classe responsável por verificar as mensagens, definir as permissões do usuário no payload e fazer o parse do comando
     """
-    def __init__(self, default_prefix: str = "!"):
+    def __init__(self, exception_handler: ExceptionHandler, default_prefix: str = "!"):
         self.default_prefix = default_prefix
 
         # TODO Buscar informação do banco de dados

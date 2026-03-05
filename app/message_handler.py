@@ -14,14 +14,17 @@ from app.features.listeners.base_listener import BaseListener
 from app.gatekeeper import Gatekeeper
 from app.dispatcher import Dispatcher
 
+from app.core.exceptions.exception_handler import ExceptionHandler
+
 class MessageHandler:
     """
     Classe principal responsável por gerenciar as mensagens. Envia o payload do usuário
     para as outras funções, além de gerenciar o envio de mensagens do bot
     """
-    def __init__(self):
-        self.gatekeeper = Gatekeeper()
-        self.dispatcher = Dispatcher()
+    def __init__(self, exception_handler: ExceptionHandler):
+        self.exception_handler = exception_handler
+        self.gatekeeper = Gatekeeper(exception_handler)
+        self.dispatcher = Dispatcher(exception_handler)
 
         self._load_commands_and_listeners()
 

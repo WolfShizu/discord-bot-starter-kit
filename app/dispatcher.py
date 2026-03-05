@@ -18,7 +18,8 @@ class Dispatcher:
     """
     Classe responsável por enviar os payloads para as funções, além de registrá-los
     """
-    def __init__(self):
+    def __init__(self, exception_handler: ExceptionHandler):
+        self.exception_handler = exception_handler
         self.commands_map: dict[str, Any] = {}
         self.listener_map = {event_type: [] for event_type in ListenerEventType}
         self.registered_names = set()

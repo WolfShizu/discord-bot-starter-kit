@@ -8,8 +8,8 @@ from app.core.exceptions.exception_handler import ExceptionHandler
 
 class DiscordClient(discord.Client):
     def __init__(self):
-        self.message_handler = MessageHandler()
         self.exception_handler = ExceptionHandler()
+        self.message_handler = MessageHandler(self.exception_handler)
 
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
