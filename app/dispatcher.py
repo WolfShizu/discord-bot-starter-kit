@@ -1,8 +1,10 @@
 # TODO Configurar o event type do listener
 # TODO Configurar o listener type do Listener, para definir se ele deve vir antes ou depois de comandos, ou se ele não deve ser chamado caso um comando seja executado
 
-from typing import Any, Type
+from typing import Any, Type, cast
 import time
+
+from dataclasses import dataclass
 
 from app.features.commands.base_command import BaseCommand
 from app.features.listeners.base_listener import BaseListener
@@ -14,14 +16,21 @@ from app.models.message_payload import UserMessagePayload
 from app.core.telemetry import Telemetry, TelemetryFeaturePayload, TelemetryBatchFeaturePayload
 from app.core.types import FeatureType
 
+from app.core.exceptions.exception_handler import ExceptionHandler
+
+@dataclass
+class FeatureExecutionResult:
+    telemetry: TelemetryFeaturePayload
+    exception: Exception | None
+
 class Dispatcher:
     """
     Classe responsável por enviar os payloads para as funções, além de registrá-los
     """
     def __init__(self, exception_handler: ExceptionHandler):
         self.exception_handler = exception_handler
-        self.commands_map: dict[str, Any] = {}
-        self.listener_map = {event_type: [] for event_type in ListenerEventType}
+        self.commands_map: dict[str, BaseCommand] = {}
+        self.listener_map: dict[ListenerEventType, list[BaseListener]] = {event_type: [] for event_type in ListenerEventType}
         self.registered_names = set()
 
         self.telemetry = Telemetry()
@@ -35,23 +44,35 @@ class Dispatcher:
         start_time = time.perf_counter()
         # Passa a mensagem para os listeners
         for listener in self.listener_map[ListenerEventType.MESSAGE]:
-            listener_telemetry = await self._execute_listener(
+            listener_result = await self._execute_listener(
                 listener= listener,
                 payload= message_payload
             )
 
-            telemetry_batch.features_executed.append(listener_telemetry)
+            telemetry_batch.features_executed.append(listener_result.telemetry)
+
+            if listener_result.exception:
+                await self.exception_handler.handle_feature_exception(
+                    exception= listener_result.exception,
+                    feature_name= listener.listener_name
+                )
 
         # Executa o comando, se houver
         if message_payload.is_command and isinstance(message_payload.command_name, str):
             command = self.commands_map.get(message_payload.command_name.lower())
 
             if command:
-                command_telemetry = await self._execute_command(
+                command_result = await self._execute_command(
                     command= command,
                     payload= message_payload
                 )
-                telemetry_batch.features_executed.append(command_telemetry)
+                telemetry_batch.features_executed.append(command_result.telemetry)
+
+                if command_result.exception:
+                    await self.exception_handler.handle_feature_exception(
+                        exception= command_result.exception,
+                        feature_name= command.command_name
+                    )
 
         duration = (time.perf_counter() - start_time) * 1000
         telemetry_batch.total_execution_time = duration
@@ -61,6 +82,7 @@ class Dispatcher:
         start_time = time.perf_counter()
         sucess = False
         error_type = None
+        exception = None
 
         try:
             await command.execute_command(payload)
@@ -68,27 +90,33 @@ class Dispatcher:
 
         except Exception as error:
             error_type = type(error).__name__
-            raise error
+            exception = error
 
-        finally:
-            duration = (time.perf_counter() - start_time) * 1000
 
-            telemetry_data = TelemetryFeaturePayload(
-                feature_type= FeatureType.COMMAND,
-                feature_name= command.command_name,
-                execution_time= duration,
-                success= sucess,
-                user_id= payload.author_id,
-                guild_id= payload.guild_id,
-                error_type = error_type
-            )
+        duration = (time.perf_counter() - start_time) * 1000
 
-            return telemetry_data
+        telemetry_data = TelemetryFeaturePayload(
+            feature_type= FeatureType.COMMAND,
+            feature_name= command.command_name,
+            execution_time= duration,
+            success= sucess,
+            user_id= payload.author_id,
+            guild_id= payload.guild_id,
+            error_type = error_type
+        )
+
+        result_payload = FeatureExecutionResult(
+            telemetry= telemetry_data,
+            exception= exception
+        )
+
+        return result_payload
 
     async def _execute_listener(self, listener: BaseListener, payload: UserMessagePayload):
         start_time = time.perf_counter()
         sucess = False
         error_type = None
+        exception = None
 
         try:
             await listener.handle_event(payload)
@@ -96,22 +124,26 @@ class Dispatcher:
 
         except Exception as error:
             error_type = type(error).__name__
-            raise error
+            exception = error
 
-        finally:
-            duration = (time.perf_counter() - start_time) * 1000
+        duration = (time.perf_counter() - start_time) * 1000
 
-            telemetry_data = TelemetryFeaturePayload(
-                feature_type= FeatureType.LISTENER,
-                feature_name= listener.listener_name,
-                execution_time= duration,
-                success= sucess,
-                user_id= payload.author_id,
-                guild_id= payload.guild_id,
-                error_type = error_type
-            )
+        telemetry_data = TelemetryFeaturePayload(
+            feature_type= FeatureType.LISTENER,
+            feature_name= listener.listener_name,
+            execution_time= duration,
+            success= sucess,
+            user_id= payload.author_id,
+            guild_id= payload.guild_id,
+            error_type = error_type
+        )
 
-            return telemetry_data
+        result_payload = FeatureExecutionResult(
+            telemetry= telemetry_data,
+            exception= exception
+        )
+
+        return result_payload
 
     def register_command(self, command_classe: Type[BaseCommand]):
         command_object = command_classe()
