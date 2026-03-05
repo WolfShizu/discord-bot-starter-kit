@@ -1,3 +1,7 @@
+# TODO Criar uma função pra exibir os dados. Essa função deve ser capaz de lidar com os seguintes dados:
+# - Local do erro (feature, comando, listener, etc)
+# - Nome da feature/serviço, caso ele tenha um nome
+
 from types import TracebackType
 import traceback as tb_module
 
@@ -40,3 +44,14 @@ class ExceptionHandler:
         print("-------------------------")
 
         print("=" * 30)
+
+    async def handle_feature_exception(self, exception: BaseException, feature_name: str):
+        if exception is None:
+            return
+
+        if isinstance(exception, GlobalException):
+            if exception.severity == ExceptionSeverity.CRITICAL:
+                raise exception
+        else:
+            print(f"Erro desconhecido na feature {feature_name}: {type(exception).__name__}")
+            print(f"Detalhes: {exception}")
