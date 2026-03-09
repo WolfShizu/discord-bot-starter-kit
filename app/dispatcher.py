@@ -23,6 +23,7 @@ from app.core.exceptions.main_pipeline.dispatcher_exceptions import (
     DuplicateFeatureNameError,
     WrongTypeFeatureError
 )
+from app.utils.file_handler import get_class_location
 
 @dataclass
 class FeatureExecutionResult:
@@ -152,10 +153,13 @@ class Dispatcher:
         return result_payload
 
     def register_command(self, command_classe: Type[BaseCommand]):
-        # TODO Adicionar verificação do MissingName
         command_object = command_classe()
 
         command_name = command_object.command_name.lower()
+
+        if not command_name:
+            command_location = get_class_location(command_object)
+            raise MissingFeatureNameError(f"Comando sem nome. Localização: {command_location["file"]}:{command_location["class_name"]}")
 
         if command_name in self.commands_map:
             raise DuplicateFeatureNameError(f"Comando {command_name} já registrado")
