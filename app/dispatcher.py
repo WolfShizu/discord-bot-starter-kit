@@ -16,7 +16,13 @@ from app.models.message_payload import UserMessagePayload
 from app.core.telemetry import Telemetry, TelemetryFeaturePayload, TelemetryBatchFeaturePayload
 from app.core.types import FeatureType
 
+# Exceções
 from app.core.exceptions.exception_handler import ExceptionHandler
+from app.core.exceptions.main_pipeline.dispatcher_exceptions import (
+    MissingFeatureNameError,
+    DuplicateFeatureNameError,
+    WrongTypeFeatureError
+)
 
 @dataclass
 class FeatureExecutionResult:
@@ -146,12 +152,13 @@ class Dispatcher:
         return result_payload
 
     def register_command(self, command_classe: Type[BaseCommand]):
+        # TODO Adicionar verificação do MissingName
         command_object = command_classe()
 
         command_name = command_object.command_name.lower()
 
         if command_name in self.commands_map:
-            raise ValueError(f"Comando {command_name} já registrado!")
+            raise DuplicateFeatureNameError(f"Comando {command_name} já registrado")
 
         self.commands_map[command_name] = command_object
 
@@ -160,7 +167,7 @@ class Dispatcher:
 
         for alias in command_aliases:
             if alias in self.commands_map:
-                raise ValueError(f"Alias {alias} já registrado!")
+                raise DuplicateFeatureNameError(f"Alias {alias} já registrado. Comando de origem: {command_name}")
 
             self.commands_map[alias] = command_object
 
@@ -170,10 +177,10 @@ class Dispatcher:
         listener_name = listener_object.listener_name
 
         if not listener_name:
-            raise ValueError(f"Listener {listener_class.__name__} não possui um nome definido!")
+            raise MissingFeatureNameError(f"Listener {listener_class.__name__} não possui um nome definido")
 
         if listener_name in self.registered_names:
-            raise ValueError(f"Listener com o nome {listener_name} já registrado!")
+            raise DuplicateFeatureNameError(f"Listener com o nome {listener_name} já registrado")
 
         self.registered_names.add(listener_name)
 
@@ -181,7 +188,7 @@ class Dispatcher:
 
         for listener_type in types_to_register:
             if not isinstance(listener_type, ListenerEventType):
-                raise ValueError(f"Listener {listener_name} ({listener_class.__name__}) está com o tipo errado!")
+                raise WrongTypeFeatureError(f"Listener {listener_name} ({listener_class.__name__}) está com o tipo errado")
 
             if listener_object in self.listener_map[listener_type]:
                 continue
