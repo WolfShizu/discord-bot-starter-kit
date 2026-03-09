@@ -4,7 +4,7 @@ import discord
 
 from app.models.message_payload import UserMessagePayload
 
-from core.exceptions.exception_handler import ExceptionHandler
+from app.core.exceptions.exception_handler import ExceptionHandler
 
 class Gatekeeper:
     """
