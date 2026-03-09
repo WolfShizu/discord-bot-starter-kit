@@ -181,7 +181,8 @@ class Dispatcher:
         listener_name = listener_object.listener_name
 
         if not listener_name:
-            raise MissingFeatureNameError(f"Listener {listener_class.__name__} não possui um nome definido")
+            listener_location = get_class_location(listener_object)
+            raise MissingFeatureNameError(f"Listener sem nome. Localização: {listener_location["file"]}:{listener_location["class_name"]}")
 
         if listener_name in self.registered_names:
             raise DuplicateFeatureNameError(f"Listener com o nome {listener_name} já registrado")
