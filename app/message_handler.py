@@ -100,9 +100,7 @@ class MessageHandler:
                                 not inspect.isabstract(object_class)
                             ):
                                 if issubclass(object_class, BaseCommand) and object_class is not BaseCommand:
-                                    # TODO Adicionar aviso para comandos sem nome
-                                    if getattr(object_class, "command_name", None):
-                                        self.dispatcher.register_command(object_class)
+                                    self.dispatcher.register_command(object_class)
 
                                 if issubclass(object_class, BaseListener) and object_class is not BaseListener:
                                     self.dispatcher.register_listener(object_class)
