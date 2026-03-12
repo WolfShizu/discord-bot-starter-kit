@@ -1,10 +1,15 @@
+import sys
+
 import discord
+from discord import app_commands
 
 from app.message_handler import MessageHandler
+from app.core.exceptions.exception_handler import ExceptionHandler
 
 class DiscordClient(discord.Client):
     def __init__(self):
-        self.message_handler = MessageHandler()
+        self.exception_handler = ExceptionHandler()
+        self.message_handler = MessageHandler(self.exception_handler)
 
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
@@ -84,3 +89,25 @@ class DiscordClient(discord.Client):
     async def on_interaction(self, interaction):
         """Alguém usou slash command ou um botão"""
         ...
+
+    # <---- Tratamento de erro ---->
+    async def on_error(self, event_method: str,*args, **kwargs):
+        """Exceções da maioria dos eventos."""
+        _, error_value, error_traceback = sys.exc_info()
+
+        if error_value:
+            await self.exception_handler.handle_exception(
+                discord_event=event_method,
+                event_arguments=args,
+                exception=error_value,
+                traceback=error_traceback
+            )
+
+    async def on_app_command_error(self, interaction: discord.Interaction, exception: app_commands.AppCommandError):
+        """Exceções específicas de comandos slash"""
+        await self.exception_handler.handle_exception(
+            discord_event= "slash_command",
+            event_arguments= tuple([interaction]),
+            exception= exception,
+            traceback= exception.__traceback__
+        )

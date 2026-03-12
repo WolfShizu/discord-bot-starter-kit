@@ -14,14 +14,17 @@ from app.features.listeners.base_listener import BaseListener
 from app.gatekeeper import Gatekeeper
 from app.dispatcher import Dispatcher
 
+from app.core.exceptions.exception_handler import ExceptionHandler
+
 class MessageHandler:
     """
     Classe principal responsável por gerenciar as mensagens. Envia o payload do usuário
     para as outras funções, além de gerenciar o envio de mensagens do bot
     """
-    def __init__(self):
-        self.gatekeeper = Gatekeeper()
-        self.dispatcher = Dispatcher()
+    def __init__(self, exception_handler: ExceptionHandler):
+        self.exception_handler = exception_handler
+        self.gatekeeper = Gatekeeper(exception_handler)
+        self.dispatcher = Dispatcher(exception_handler)
 
         self._load_commands_and_listeners()
 
@@ -97,9 +100,7 @@ class MessageHandler:
                                 not inspect.isabstract(object_class)
                             ):
                                 if issubclass(object_class, BaseCommand) and object_class is not BaseCommand:
-                                    # TODO Adicionar aviso para comandos sem nome
-                                    if getattr(object_class, "command_name", None):
-                                        self.dispatcher.register_command(object_class)
+                                    self.dispatcher.register_command(object_class)
 
                                 if issubclass(object_class, BaseListener) and object_class is not BaseListener:
                                     self.dispatcher.register_listener(object_class)
