@@ -1,16 +1,21 @@
+import os
 import sys
+from typing import cast
+import asyncio
 
 import discord
 from discord import app_commands
 
+import psutil
+
 from app.message_handler import MessageHandler
 from app.core.exceptions.exception_handler import ExceptionHandler
 
-class DiscordClient(discord.Client):
-    def __init__(self):
-        self.exception_handler = ExceptionHandler()
-        self.message_handler = MessageHandler(self.exception_handler)
+from app.core.telemetry import Telemetry, SystemStatistics
+from app.core.dashboard import TerminalDashboard
 
+class DiscordClient(discord.Client):
+    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry):
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
         intents.message_content = True
@@ -19,27 +24,64 @@ class DiscordClient(discord.Client):
 
         super().__init__(intents=intents)
 
+        self.dashboard = dashboard
+        self.telemetry = telemetry
+
+        self.exception_handler = ExceptionHandler()
+        self.message_handler = MessageHandler(self.exception_handler, telemetry)
+
+        self.statistics = SystemStatistics(
+            system_status= "Starting...",
+            connected_as= "",
+            bot_id= 0,
+            cpu_usage= "0%",
+            ram_usage= "0%",
+            uptime= "0s",
+            guilds= 0,
+            processed_messages= 0,
+            messages_sent= 0,
+            features_executed= 0,
+            commands_executed= 0,
+            listeners_executed= 0
+        )
+
     # <---- Primeiro evento de conexão ---->
     async def on_ready(self) -> None:
-        if isinstance(self.user, discord.ClientUser):
-            bot_name = self.user.name
-            bot_id = self.user.id
-            total_guilds = len(self.guilds)
+        ...
 
-            print("=" * 30)
-            print("SISTEMA ONLINE")
-            print(f"Bot: {bot_name}")
-            print(f"Bot ID: {bot_id}")
-            print(f"Total de servidores: {total_guilds}")
-            print("=" * 30)
-        else:
-            print("Falha ao obter informações do bot")
+    # <---- Configuração da Telemetria ---->
+    async def setup_hook(self) -> None:
+        self.loop.create_task(self.telemetry_task())
+
+    async def telemetry_task(self) -> None:
+        await self.wait_until_ready()
+
+        while not self.is_closed():
+            self.statistics.system_status = "Online"
+            self.statistics.connected_as = cast(str, self.user)
+            self.statistics.bot_id = self.user.id if self.user else 0
+            self.statistics.guilds = len(self.guilds)
+
+            self.statistics.cpu_usage = f"{psutil.cpu_percent()}%"
+
+            process = psutil.Process(os.getpid()) # Pega o ID do processo atual do bot
+            memory_info = process.memory_info()
+
+            # rss (Resident Set Size) é a memória física real que o processo está usando
+            ram_usage = memory_info.rss / (1024 ** 2)
+
+            self.statistics.ram_usage = f"{ram_usage:.2f}MB"
+
+            self.dashboard.update_statistics(self.statistics)
+
+            await asyncio.sleep(1)
 
     # <---- Eventos de Mensagens ---->
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
 
+        self.statistics.processed_messages += 1
         await self.message_handler.handle_message(message)
 
 
