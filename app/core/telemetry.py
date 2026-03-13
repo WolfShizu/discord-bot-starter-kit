@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from app.core.types import FeatureType
+from app.core.dashboard import TerminalDashboard
 
 @dataclass
 class TelemetryFeaturePayload:
@@ -28,8 +29,24 @@ class TelemetryBatchFeaturePayload:
     features_executed: list[TelemetryFeaturePayload] = field(default_factory= list)
     timestamp: datetime = field(default_factory= datetime.now)
 
+@dataclass
+class SystemStatistics:
+    system_status: str
+    connected_as: str
+    bot_id: int
+    cpu_usage: str
+    ram_usage: str
+    uptime: str
+    guilds: int
+    processed_messages: int
+    messages_sent: int
+    features_executed: int
+    commands_executed: int
+    listeners_executed: int
+
 class Telemetry:
-    def __init__(self):
+    def __init__(self, dashboard: TerminalDashboard):
+        self.dashboard = dashboard
         self.total_data_recorded = 0
 
     async def record_batch(self, telemetry_data: TelemetryBatchFeaturePayload):
@@ -40,9 +57,12 @@ class Telemetry:
             "features_executed": len(telemetry_data.features_executed),
             "timestamp": telemetry_data.timestamp
         }
-        print("=" * 20)
-        print(f"Data N° {self.total_data_recorded}")
-        print(f"message id: {data['message_id']}")
-        print(f"total execution time: {data["total_execution_time"]}")
-        print(f"features executed: {data["features_executed"]}")
-        print("=" * 20)
+
+        log_message = (
+            f"Data N° {self.total_data_recorded}\n"
+            f"Message ID: {data['message_id']}\n"
+            f"Execution Time: {data['total_execution_time']:.4f}ms\n"
+            f"Features: {data['features_executed']}"
+        )
+
+        self.dashboard.add_log(log_message)
