@@ -21,10 +21,11 @@ class MessageHandler:
     Classe principal responsável por gerenciar as mensagens. Envia o payload do usuário
     para as outras funções, além de gerenciar o envio de mensagens do bot
     """
-    def __init__(self, exception_handler: ExceptionHandler):
+    def __init__(self, exception_handler: ExceptionHandler, telemetry):
         self.exception_handler = exception_handler
+        self.telemetry = telemetry
         self.gatekeeper = Gatekeeper(exception_handler)
-        self.dispatcher = Dispatcher(exception_handler)
+        self.dispatcher = Dispatcher(exception_handler, telemetry)
 
         self._load_commands_and_listeners()
 
