@@ -7,20 +7,25 @@ from app.discord_client import DiscordClient
 # <--- Telemetria e terminal --->
 from rich.live import Live
 
-from app.core.telemetry import Telemetry, TerminalDashboard
-
+from app.core.telemetry import Telemetry
+from app.core.dashboard import TerminalDashboard
 
 load_dotenv()
 discord_token = str(os.getenv("DISCORD_TOKEN"))
 
-telemetry = Telemetry()
+dashboard = TerminalDashboard()
 
-bot_instance = DiscordClient(telemetry)
+telemetry = Telemetry(dashboard)
+
+bot_instance = DiscordClient(dashboard, telemetry)
 
 # roda o bot de forma assíncrona
 async def main():
-    async with bot_instance:
-        await bot_instance.start(token= discord_token)
+    with Live(dashboard.layout, refresh_per_second=4, screen=True):
+        dashboard.add_log("Iniciando sistema", style="yellow")
+
+        async with bot_instance:
+            await bot_instance.start(token= discord_token)
 
 try:
     asyncio.run(main())
