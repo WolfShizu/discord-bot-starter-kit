@@ -2,6 +2,7 @@ import os
 import sys
 from typing import cast
 import asyncio
+from datetime import datetime
 
 import discord
 from discord import app_commands
@@ -36,7 +37,7 @@ class DiscordClient(discord.Client):
             bot_id= 0,
             cpu_usage= "0%",
             ram_usage= "0%",
-            uptime= "0s",
+            uptime= "00:00:00",
             guilds= 0,
             processed_messages= 0,
             messages_sent= 0,
@@ -44,6 +45,8 @@ class DiscordClient(discord.Client):
             commands_executed= 0,
             listeners_executed= 0
         )
+
+        self.start_time = datetime.now()
 
     # <---- Primeiro evento de conexão ---->
     async def on_ready(self) -> None:
@@ -62,6 +65,8 @@ class DiscordClient(discord.Client):
             self.statistics.bot_id = self.user.id if self.user else 0
             self.statistics.guilds = len(self.guilds)
 
+            self.statistics.uptime = self._get_uptime()
+
             self.statistics.cpu_usage = f"{psutil.cpu_percent()}%"
 
             process = psutil.Process(os.getpid()) # Pega o ID do processo atual do bot
@@ -75,6 +80,13 @@ class DiscordClient(discord.Client):
             self.dashboard.update_statistics(self.statistics)
 
             await asyncio.sleep(1)
+
+    def _get_uptime(self) -> str:
+        delta = datetime.now() - self.start_time
+        hours, remainder = divmod(int(delta.total_seconds()), 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
 
     # <---- Eventos de Mensagens ---->
     async def on_message(self, message: discord.Message):
