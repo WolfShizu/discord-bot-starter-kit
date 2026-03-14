@@ -16,7 +16,7 @@ from app.core.telemetry import Telemetry, SystemStatistics
 from app.core.dashboard import TerminalDashboard
 
 class DiscordClient(discord.Client):
-    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry):
+    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics):
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
         intents.message_content = True
@@ -31,20 +31,7 @@ class DiscordClient(discord.Client):
         self.exception_handler = ExceptionHandler()
         self.message_handler = MessageHandler(self.exception_handler, telemetry)
 
-        self.statistics = SystemStatistics(
-            system_status= "Starting...",
-            connected_as= "",
-            bot_id= 0,
-            cpu_usage= "0%",
-            ram_usage= "0%",
-            uptime= "00:00:00",
-            guilds= 0,
-            processed_messages= 0,
-            messages_sent= 0,
-            features_executed= 0,
-            commands_executed= 0,
-            listeners_executed= 0
-        )
+        self.statistics = statistics
 
         self.start_time = datetime.now()
 
