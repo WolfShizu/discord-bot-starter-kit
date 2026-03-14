@@ -48,8 +48,12 @@ class TerminalDashboard:
         self.layout["column_2"].split_column(
             Layout(name= "exceptions"),
             Layout(name= "logs"),
-            Layout(name= "empty1"),
-            Layout(name= "empty2")
+            Layout(name= "empty_panel"),
+        )
+
+        self.layout["column_2"]["empty_panel"].split_row(
+            Layout(name= "empty_1"),
+            Layout(name= "empty_2")
         )
 
         self.layout["column_1"]["system_data_panel"]["empty_space"].update(
@@ -121,7 +125,7 @@ class TerminalDashboard:
         lines = 100
         lenght = 200
 
-        characters = [".", ".", "·", "+", "*", "°"]
+        characters = [".", ".", "·", "+", "*"]
         colors = ["dim white", "purple", "magenta", "bold white", "deep_pink3", "yellow", "blue"]
 
         star_lines = []
