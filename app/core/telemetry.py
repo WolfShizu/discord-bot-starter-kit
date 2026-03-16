@@ -54,19 +54,27 @@ class Telemetry:
 
     async def record_batch(self, telemetry_batch: TelemetryBatchFeaturePayload):
         self.total_data_recorded += 1
-        data = {
-            "message_id": telemetry_batch.message_id,
-            "total_execution_time": telemetry_batch.total_execution_time,
-            "features_executed": len(telemetry_batch.features_executed),
-            "timestamp": telemetry_batch.timestamp
-        }
 
-        log_message = (
-            f"Data N° {self.total_data_recorded}\n"
-            f"Message ID: {data['message_id']}\n"
-            f"Execution Time: {data['total_execution_time']:.4f}ms\n"
-            f"Features: {data['features_executed']}"
-        )
+        message_id = telemetry_batch.message_id
+        total_execution_time = telemetry_batch.total_execution_time
+        features_executed = len(telemetry_batch.features_executed)
+
+        execution_time_color = ""
+
+        if total_execution_time:
+            if total_execution_time < 100:
+                execution_time_color = "green"
+            elif total_execution_time < 500:
+                execution_time_color = "yellow"
+            else:
+                execution_time_color = "red"
+
+        log_message = [
+            f"Data N° {self.total_data_recorded} | ",
+            f"Message ID: {message_id} | ",
+            (f"Execution Time: {total_execution_time:.2f}ms", execution_time_color),
+            f" | Features: {features_executed}",
+        ]
 
         for telemetry_data in telemetry_batch.features_executed:
             self.statistics.features_executed +=1
