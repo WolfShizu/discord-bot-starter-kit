@@ -9,6 +9,8 @@ from datetime import datetime
 from app.core.types import FeatureType
 from app.core.dashboard import TerminalDashboard
 
+from app.models.message_payload import BotResponsePayload
+
 @dataclass
 class TelemetryFeaturePayload:
     feature_type: FeatureType
@@ -45,8 +47,9 @@ class SystemStatistics:
     listeners_executed: int
 
 class Telemetry:
-    def __init__(self, dashboard: TerminalDashboard):
+    def __init__(self, dashboard: TerminalDashboard, statistics: SystemStatistics):
         self.dashboard = dashboard
+        self.statistics = statistics
         self.total_data_recorded = 0
 
     async def record_batch(self, telemetry_data: TelemetryBatchFeaturePayload):
@@ -66,3 +69,6 @@ class Telemetry:
         )
 
         self.dashboard.add_log(log_message)
+
+    async def record_sent_message(self, response_payload: BotResponsePayload):
+        self.statistics.messages_sent += 1

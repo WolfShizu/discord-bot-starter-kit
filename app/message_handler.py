@@ -14,6 +14,7 @@ from app.features.listeners.base_listener import BaseListener
 from app.gatekeeper import Gatekeeper
 from app.dispatcher import Dispatcher
 
+from app.core.telemetry import Telemetry
 from app.core.exceptions.exception_handler import ExceptionHandler
 
 class MessageHandler:
@@ -21,7 +22,7 @@ class MessageHandler:
     Classe principal responsável por gerenciar as mensagens. Envia o payload do usuário
     para as outras funções, além de gerenciar o envio de mensagens do bot
     """
-    def __init__(self, exception_handler: ExceptionHandler, telemetry):
+    def __init__(self, exception_handler: ExceptionHandler, telemetry: Telemetry):
         self.exception_handler = exception_handler
         self.telemetry = telemetry
         self.gatekeeper = Gatekeeper(exception_handler)
@@ -73,6 +74,7 @@ class MessageHandler:
 
         try:
             await channel.send(**send_kwargs)
+            await self.telemetry.record_sent_message(response_payload)
         except Exception as error:
             # TODO Tratar corretamente o erro
             print(f"Falha no envio de mensagem: {error}")
