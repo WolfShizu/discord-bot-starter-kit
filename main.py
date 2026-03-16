@@ -38,7 +38,7 @@ bot_instance = DiscordClient(dashboard, telemetry, statistics)
 # roda o bot de forma assíncrona
 async def main():
     with Live(dashboard.layout, refresh_per_second=4, screen=True):
-        dashboard.add_log("Iniciando sistema", style="yellow")
+        dashboard.add_log("Iniciando sistema", default_style="yellow")
 
         async with bot_instance:
             await bot_instance.start(token= discord_token)
