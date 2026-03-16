@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 import random
 
 from rich.layout import Layout
@@ -64,14 +64,22 @@ class TerminalDashboard:
             )
         )
 
-    def add_log(self, message: str, style: str = "white"):
+    def add_log(self, message: Sequence[str | tuple[str, str]], default_style: str = "white"):
             # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
             # E as mensagens rolarem de cima para baixo
             timestamp = datetime.now().strftime("%H:%M:%S")
 
+            parsed_message = []
+
+            for message_chunk in message:
+                if isinstance(message_chunk, str):
+                    parsed_message.append((message_chunk, default_style))
+                else:
+                    parsed_message.append(message_chunk)
+
             log_line = Text.assemble(
                 (f"[{timestamp}] ", "cyan"),
-                (message, style)
+                *parsed_message
             )
 
             # Insere como primeiro da lista
