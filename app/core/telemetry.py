@@ -52,13 +52,13 @@ class Telemetry:
         self.statistics = statistics
         self.total_data_recorded = 0
 
-    async def record_batch(self, telemetry_data: TelemetryBatchFeaturePayload):
+    async def record_batch(self, telemetry_batch: TelemetryBatchFeaturePayload):
         self.total_data_recorded += 1
         data = {
-            "message_id": telemetry_data.message_id,
-            "total_execution_time": telemetry_data.total_execution_time,
-            "features_executed": len(telemetry_data.features_executed),
-            "timestamp": telemetry_data.timestamp
+            "message_id": telemetry_batch.message_id,
+            "total_execution_time": telemetry_batch.total_execution_time,
+            "features_executed": len(telemetry_batch.features_executed),
+            "timestamp": telemetry_batch.timestamp
         }
 
         log_message = (
@@ -67,6 +67,19 @@ class Telemetry:
             f"Execution Time: {data['total_execution_time']:.4f}ms\n"
             f"Features: {data['features_executed']}"
         )
+
+        for telemetry_data in telemetry_batch.features_executed:
+            self.statistics.features_executed +=1
+            match telemetry_data.feature_type:
+                case FeatureType.COMMAND:
+                    self.statistics.commands_executed += 1
+
+                case FeatureType.LISTENER:
+                    self.statistics.listeners_executed += 1
+
+                case _:
+                    # TODO Tratar corretamente o erro
+                    ...
 
         self.dashboard.add_log(log_message)
 
