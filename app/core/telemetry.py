@@ -45,6 +45,7 @@ class SystemStatistics:
     features_executed: int
     commands_executed: int
     listeners_executed: int
+    total_exceptions: int
 
 class Telemetry:
     def __init__(self, dashboard: TerminalDashboard, statistics: SystemStatistics):

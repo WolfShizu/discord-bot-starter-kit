@@ -28,7 +28,8 @@ statistics = SystemStatistics(
             messages_sent= 0,
             features_executed= 0,
             commands_executed= 0,
-            listeners_executed= 0
+            listeners_executed= 0,
+            total_exceptions= 0
         )
 
 telemetry = Telemetry(dashboard, statistics)

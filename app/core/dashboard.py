@@ -26,7 +26,7 @@ class TerminalDashboard:
         )
 
         self.layout["column_1"].split_column(
-            Layout(name= "system_data_panel", size= 16),
+            Layout(name= "system_data_panel", size= 17),
             Layout(name= "commands_info_line")
         )
 
@@ -37,7 +37,7 @@ class TerminalDashboard:
 
         self.layout["column_1"]["system_data_panel"]["system_data_line"].split_column(
             Layout(name= "system", size= 7),
-            Layout(name= "info", size= 9),
+            Layout(name= "info", size= 10),
         )
 
         self.layout["column_1"]["commands_info_line"].split_row(
@@ -109,6 +109,7 @@ class TerminalDashboard:
             f"[bold white]features Executed:[/] [blue]{statistics.features_executed}\n[/]"
             f"[bold white]listeners Executed:[/] [blue]{statistics.listeners_executed}\n[/]"
             f"[bold white]commands Executeds:[/] [blue]{statistics.commands_executed}\n[/]"
+            f"[bold white]exceptions:[/] [red]{statistics.total_exceptions}[/]"
         )
 
         self.layout["column_1"]["system_data_line"]["system"].update(
