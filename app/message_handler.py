@@ -109,4 +109,7 @@ class MessageHandler:
                                     self.dispatcher.register_listener(object_class)
 
                     except Exception as error:
+                        # TODO Esse erro deve ser tratado pelo exception handler. Deve ser feito um melhor tratamento do erro para que ele apareça corretamente no dashboard (atualmente não está aparecendo)
+                        # TODO Melhorar tratamento de erro
                         print(f"Erro ao carregar módulo: {module_path}: {error}")
+                        self.telemetry.record_basic_exception(f"Erro ao carregar módulo: {module_path}: {error}")

@@ -15,6 +15,7 @@ class TerminalDashboard:
         self.layout = Layout()
 
         self.log_buffer = []
+        self.exception_log_buffer = []
         self.max_logs = 20
 
         self._setup_layout()
@@ -124,8 +125,33 @@ class TerminalDashboard:
     def update_command_info(self):
         ...
 
-    def add_exception(self):
-        ...
+    def add_exception(self, exception_log, default_style: str = "white"):
+        # TODO Mover essa lógica para uma função auxiliar que é chamada pelo exception e log
+        # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
+        # E as mensagens rolarem de cima para baixo
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        parsed_message = []
+
+        for log_chunk in exception_log:
+            if isinstance(log_chunk, str):
+                parsed_message.append((log_chunk, default_style))
+            else:
+                parsed_message.append(log_chunk)
+
+        log_line = Text.assemble(
+            (f"[{timestamp}] ", "cyan"),
+            *parsed_message
+        )
+
+        # Insere como primeiro da lista
+        self.exception_log_buffer.insert(0, log_line)
+
+        if len(self.log_buffer) > self.max_logs:
+            self.log_buffer.pop()
+
+        self.layout["column_2"]["exceptions"].update(
+            Panel(Group(*self.log_buffer), title="Live Logs", border_style="blue")
+        )
 
     def update_empty_panel(self):
         ...

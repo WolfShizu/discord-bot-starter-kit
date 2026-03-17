@@ -2,11 +2,11 @@
 # E o Telemetry deve ser capaz de tratar esses dados corretamente
 # Os dados que serão recebidos devem ser registrados e configurados (se devem aparecer no terminal, se deve ser contado, etc)
 # Também terá um aviso caso algum dado não esteja registrado
-
+from types import TracebackType
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from app.core.types import FeatureType
+from app.core.types import FeatureType, ExceptionSeverity
 from app.core.dashboard import TerminalDashboard
 
 from app.models.message_payload import BotResponsePayload
@@ -30,6 +30,16 @@ class TelemetryBatchFeaturePayload:
     total_execution_time: float | None = None
     features_executed: list[TelemetryFeaturePayload] = field(default_factory= list)
     timestamp: datetime = field(default_factory= datetime.now)
+
+@dataclass
+class TelemetryExceptionPayload:
+    severity: ExceptionSeverity
+    name: str
+    message: str
+    discord_event: str
+    arguments: tuple
+    trimmed_traceback: str
+    full_traceback: str
 
 @dataclass
 class SystemStatistics:
@@ -94,3 +104,21 @@ class Telemetry:
 
     async def record_sent_message(self, response_payload: BotResponsePayload):
         self.statistics.messages_sent += 1
+
+    async def record_exception(self, exception_payload: TelemetryExceptionPayload):
+        self.statistics.total_exceptions += 1
+
+        exception_log = [
+            f"name: {exception_payload.name}",
+            f"severity: {exception_payload.severity}",
+            f"message: {exception_payload.message}",
+            f"discord event: {exception_payload.discord_event}",
+            f"arguments: {exception_payload.arguments}",
+            f"trimmed traceback: {exception_payload.trimmed_traceback}"
+        ]
+
+        self.dashboard.add_exception(exception_log)
+
+    def record_basic_exception(self, exception_message: str):
+        self.statistics.total_exceptions += 1
+        self.dashboard.add_exception([exception_message])
