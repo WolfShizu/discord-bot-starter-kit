@@ -117,8 +117,8 @@ class Telemetry:
             f"trimmed traceback: {exception_payload.trimmed_traceback}"
         ]
 
-        self.dashboard.add_exception(exception_log)
+        self.dashboard.add_exception(exception_log, default_style= "red")
 
     def record_basic_exception(self, exception_message: str):
         self.statistics.total_exceptions += 1
-        self.dashboard.add_exception([exception_message])
+        self.dashboard.add_exception([exception_message], default_style= "red")
