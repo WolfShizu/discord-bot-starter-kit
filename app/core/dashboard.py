@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, Any
 import random
 
 from rich.layout import Layout
 from rich.panel import Panel
+from rich.table import Table
 from rich.console import Group
 from rich.text import Text
 from rich import box
@@ -19,11 +20,11 @@ class TerminalDashboard:
         self.exception_log_buffer = []
         self.max_logs = 20
 
-        self.telemetry: Telemetry
+        self.telemetry: "Telemetry"
 
         self._setup_layout()
 
-    def get_telemetry(self, telemetry: Telemetry):
+    def get_telemetry(self, telemetry: "Telemetry"):
         self.telemetry = telemetry
 
     def _setup_layout(self):
@@ -128,6 +129,80 @@ class TerminalDashboard:
         self.layout["column_1"]["system_data_line"]["info"].update(
             Panel(info_data, title= "INFO", border_style= "cyan")
         )
+
+        most_used_commands = self.telemetry.get_most_used_commands_data()
+        slowest_commands = self.telemetry.get_slowest_commands_data()
+
+        most_used_commands_table = self._create_most_used_commands_table(most_used_commands)
+        slowest_commands_table = self._create_slowest_commands_table(slowest_commands)
+
+        self.layout["column_1"]["commands_info_line"]["most_used_commands"].update(
+            Panel(most_used_commands_table, title= "Most Used Commands", border_style= "blue")
+        )
+
+        self.layout["column_1"]["commands_info_line"]["slowest_commands"].update(
+            Panel(slowest_commands_table, title= "Slowest Commands", border_style= "blue")
+        )
+
+    def _create_most_used_commands_table(self, most_used_commands: list[dict[str, Any]]) -> Table:
+        most_used_commands_data = []
+        for command in most_used_commands:
+            most_used_commands_data.append(
+                [
+                    command["command_name"],
+                    str(command["execution_count"]),
+                    f"{command["average_execution_time"]:.2f}ms"
+                ]
+            )
+
+        columns = [
+            {"header": "Comando"},
+            {"header": "Execuções"},
+            {"header": "Tempo Médio"},
+        ]
+
+        most_used_commands_table = self._create_table(columns= columns, rows= most_used_commands_data)
+        return most_used_commands_table
+
+    def _create_slowest_commands_table(self, slowest_commands: list[dict[str, Any]]) -> Table:
+        slowest_commands_data = []
+        for command in slowest_commands:
+            slowest_commands_data.append(
+                [
+                    command["command_name"],
+                    f"{command["slowest_execution_time"]:.2f}ms",
+                    f"{command["average_execution_time"]:.2f}ms"
+                ]
+            )
+
+        columns = [
+            {"header": "Comando"},
+            {"header": "Execução mais lenta"},
+            {"header": "Tempo Médio"},
+        ]
+
+        slowest_commands_table = self._create_table(columns= columns, rows= slowest_commands_data)
+        return slowest_commands_table
+
+    def _create_table(
+            self,
+            columns: list[dict[str, Any]],
+            rows: list[dict[str, Any]],
+            header_style: str = "blue"
+        ) -> Table:
+        table = Table(
+            expand= True,
+            box= box.ROUNDED,
+            header_style= header_style
+        )
+
+        for column in columns:
+            table.add_column(**column)
+
+        for row in rows:
+            table.add_row(*row)
+
+        return table
 
     def update_command_info(self):
         ...
