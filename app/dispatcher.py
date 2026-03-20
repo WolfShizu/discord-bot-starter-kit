@@ -33,13 +33,13 @@ class Dispatcher:
     """
     Classe responsável por enviar os payloads para as funções, além de registrá-los
     """
-    def __init__(self, exception_handler: ExceptionHandler):
+    def __init__(self, exception_handler: ExceptionHandler, telemetry: Telemetry):
         self.exception_handler = exception_handler
         self.commands_map: dict[str, BaseCommand] = {}
         self.listener_map: dict[ListenerEventType, list[BaseListener]] = {event_type: [] for event_type in ListenerEventType}
         self.registered_names = set()
 
-        self.telemetry = Telemetry()
+        self.telemetry = telemetry
 
     async def dispatch_message(self, message_payload: UserMessagePayload):
         telemetry_batch = TelemetryBatchFeaturePayload(

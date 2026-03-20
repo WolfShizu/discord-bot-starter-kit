@@ -9,6 +9,8 @@ from app.core.exceptions.global_exception import GlobalException
 
 from app.core.types import ExceptionSeverity
 
+from app.core.telemetry import TelemetryExceptionPayload
+
 class ExceptionHandler:
     def __init__(self):
         self.fail_map = {
@@ -27,23 +29,31 @@ class ExceptionHandler:
         if exception is None:
             return
 
-        print("=" * 30)
-
         if isinstance(exception, GlobalException):
-            severity_label = self.fail_map.get(exception.severity, "DESCONHECIDO")
-            print(f"FALHA {severity_label}")
-            print(f"Falha: {exception.message}")
+            severity = exception.severity
+            message = exception.message
+
         else:
-            print(f"FALHA DESCONHECIDA: {type(exception).__name__}")
-            print(f"Detalhes: {exception}")
+            severity = ExceptionSeverity.UNKNOWN
+            message = str(exception)
 
-        print(f"Evento: {discord_event}")
-        print(f"Argumentos recebidos pelo evento: {event_arguments}")
-        print("--- TRACEBACK DO ERRO ---")
-        tb_module.print_exception(type(exception), exception, traceback)
-        print("-------------------------")
+        name = type(exception).__name__
 
-        print("=" * 30)
+        trimmed_traceback_lines = tb_module.format_exception(type(exception), exception, traceback, limit= 2)
+        trimmed_traceback_string = "".join(trimmed_traceback_lines)
+
+        full_traceback_lines = tb_module.format_exception(type(exception), exception, traceback, limit= 2)
+        full_traceback_string = "".join(full_traceback_lines)
+
+        return TelemetryExceptionPayload(
+            severity= severity,
+            name= name,
+            message= message,
+            discord_event= discord_event,
+            arguments= event_arguments,
+            trimmed_traceback= trimmed_traceback_string,
+            full_traceback= full_traceback_string
+        )
 
     async def handle_feature_exception(self, exception: BaseException, feature_name: str):
         if exception is None:
@@ -53,5 +63,6 @@ class ExceptionHandler:
             if exception.severity == ExceptionSeverity.CRITICAL:
                 raise exception
         else:
+            # TODO Melhorar tratamento de erro
             print(f"Erro desconhecido na feature {feature_name}: {type(exception).__name__}")
             print(f"Detalhes: {exception}")

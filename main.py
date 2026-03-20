@@ -4,14 +4,50 @@ from dotenv import load_dotenv
 
 from app.discord_client import DiscordClient
 
+# <--- Telemetria e terminal --->
+from rich.live import Live
+
+from app.core.telemetry import Telemetry
+from app.core.dashboard import TerminalDashboard
+from app.core.telemetry import SystemStatistics
+
 load_dotenv()
 discord_token = str(os.getenv("DISCORD_TOKEN"))
 
-bot_instance = DiscordClient()
+dashboard = TerminalDashboard()
+
+statistics = SystemStatistics(
+            system_status= "Starting...",
+            connected_as= "",
+            bot_id= 0,
+            cpu_usage= "0%",
+            ram_usage= "0%",
+            uptime= "00:00:00",
+            guilds= 0,
+            processed_messages= 0,
+            messages_sent= 0,
+            features_executed= 0,
+            commands_executed= 0,
+            listeners_executed= 0,
+            total_exceptions= 0
+        )
+
+telemetry = Telemetry(dashboard, statistics)
+
+# TODO Criar uma classe "mediadora" entre as duas, que contenha todas as funções que uma classe precisa usar da outra
+dashboard.get_telemetry(telemetry)
+
+bot_instance = DiscordClient(dashboard, telemetry, statistics)
 
 # roda o bot de forma assíncrona
 async def main():
-    async with bot_instance:
-        await bot_instance.start(token= discord_token)
+    with Live(dashboard.layout, refresh_per_second=4, screen=True):
+        dashboard.add_log("Iniciando sistema", default_style="yellow")
 
-asyncio.run(main())
+        async with bot_instance:
+            await bot_instance.start(token= discord_token)
+
+try:
+    asyncio.run(main())
+except KeyboardInterrupt:
+    pass

@@ -1,15 +1,18 @@
 from enum import Enum, auto
 
 class FeatureType(Enum):
-    COMMAND = auto()
-    LISTENER = auto()
+    COMMAND = "command"
+    LISTENER = "listeners"
 
 class ExceptionSeverity(Enum):
-    LOW = auto()
+    UNKNOWN = "unknown"
+    """Usado para definir a severidade de exceções padrões"""
+
+    LOW = "low"
     """Notifica apenas no terminal. Erro aceitável e esperado."""
 
-    MEDIUM = auto()
+    MEDIUM = "medium"
     """Notifica e guarda o erro. Funcionalidade afetada, exige correção."""
 
-    CRITICAL = auto()
+    CRITICAL = "critical"
     """Notifica, guarda o erro e encerra o processo para evitar corrupção de dados."""
