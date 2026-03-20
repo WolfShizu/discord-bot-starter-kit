@@ -9,7 +9,7 @@ from rich.text import Text
 from rich import box
 
 if TYPE_CHECKING:
-    from app.core.telemetry import SystemStatistics
+    from app.core.telemetry import SystemStatistics, Telemetry
 
 class TerminalDashboard:
     def __init__(self):
@@ -19,7 +19,12 @@ class TerminalDashboard:
         self.exception_log_buffer = []
         self.max_logs = 20
 
+        self.telemetry: Telemetry
+
         self._setup_layout()
+
+    def get_telemetry(self, telemetry: Telemetry):
+        self.telemetry = telemetry
 
     def _setup_layout(self):
         self.layout.split_row(
@@ -123,7 +128,6 @@ class TerminalDashboard:
         self.layout["column_1"]["system_data_line"]["info"].update(
             Panel(info_data, title= "INFO", border_style= "cyan")
         )
-
 
     def update_command_info(self):
         ...
