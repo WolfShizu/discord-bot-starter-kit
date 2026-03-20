@@ -57,11 +57,24 @@ class SystemStatistics:
     listeners_executed: int
     total_exceptions: int
 
+@dataclass
+class FeatureStatistics:
+    """Guarda informações sobre execução das features. Usado para criar os top 5 e outras métricas"""
+    feature_name: str
+    execution_count: int = 0
+    avarage_execution_time: float = 0
+    slowest_execution_time: float = 0
+    last_executed: datetime = field(default_factory= datetime.now)
+
 class Telemetry:
     def __init__(self, dashboard: TerminalDashboard, statistics: SystemStatistics):
         self.dashboard = dashboard
         self.statistics = statistics
         self.total_data_recorded = 0
+
+        # Mapeamento de Features
+        self.commands_map: dict[str, FeatureStatistics] = {}
+        self.listeners_map: dict[str, FeatureStatistics] = {}
 
     async def record_batch(self, telemetry_batch: TelemetryBatchFeaturePayload):
         self.total_data_recorded += 1
@@ -89,6 +102,7 @@ class Telemetry:
 
         for telemetry_data in telemetry_batch.features_executed:
             self.statistics.features_executed +=1
+
             match telemetry_data.feature_type:
                 case FeatureType.COMMAND:
                     self.statistics.commands_executed += 1
@@ -99,6 +113,40 @@ class Telemetry:
                 case _:
                     # TODO Tratar corretamente o erro
                     ...
+
+            target_map = None
+            match telemetry_data.feature_type:
+                case FeatureType.COMMAND:
+                    target_map = self.commands_map
+
+                case FeatureType.LISTENER:
+                    target_map = self.listeners_map
+
+                case _:
+                    # TODO Tratar corretamente o erro
+                    ...
+
+            if target_map:
+                if telemetry_data.feature_name not in target_map:
+                    target_map[telemetry_data.feature_name] = FeatureStatistics(feature_name= telemetry_data.feature_name)
+
+                feature_stats = target_map[telemetry_data.feature_name]
+                feature_stats.execution_count += 1
+                feature_stats.last_executed = telemetry_data.timestamp
+
+                feature_execution_time = telemetry_data.execution_time
+
+                # Define o tempo de execução mais lento
+                if feature_stats.slowest_execution_time < feature_execution_time:
+                    feature_stats.slowest_execution_time = feature_execution_time
+
+                # Define a média de tempo de execução
+                if feature_stats.execution_count == 1:
+                    feature_stats.avarage_execution_time = feature_execution_time
+
+                else:
+                    avarage_execution_time = ((feature_stats.avarage_execution_time * (feature_stats.execution_count - 1)) + feature_execution_time) / feature_stats.execution_count
+                    feature_stats.avarage_execution_time = avarage_execution_time
 
         self.dashboard.add_log(log_message)
 
