@@ -6,6 +6,7 @@ from rich.layout import Layout
 from rich.panel import Panel
 from rich.console import Group
 from rich.text import Text
+from rich import box
 
 if TYPE_CHECKING:
     from app.core.telemetry import SystemStatistics
@@ -23,7 +24,7 @@ class TerminalDashboard:
     def _setup_layout(self):
         self.layout.split_row(
             Layout(name= "column_1"),
-            Layout(name= "column_2")
+            Layout(name= "column_2"),
         )
 
         self.layout["column_1"].split_column(
@@ -62,6 +63,8 @@ class TerminalDashboard:
                 self._get_starfield_background(),
                 title="[bold purple] ◈ WOLFSHIZU // UNIT-01 ◈ [/]",
                 border_style="purple",
+                box= box.SQUARE,
+
             )
         )
 
@@ -146,11 +149,11 @@ class TerminalDashboard:
         # Insere como primeiro da lista
         self.exception_log_buffer.insert(0, log_line)
 
-        if len(self.log_buffer) > self.max_logs:
-            self.log_buffer.pop()
+        if len(self.exception_log_buffer) > self.max_logs:
+            self.exception_log_buffer.pop()
 
         self.layout["column_2"]["exceptions"].update(
-            Panel(Group(*self.log_buffer), title="Live Logs", border_style="blue")
+            Panel(Group(*self.exception_log_buffer), title="Live Logs", border_style="blue")
         )
 
     def update_empty_panel(self):
