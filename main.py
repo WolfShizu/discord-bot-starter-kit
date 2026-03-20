@@ -34,6 +34,9 @@ statistics = SystemStatistics(
 
 telemetry = Telemetry(dashboard, statistics)
 
+# TODO Criar uma classe "mediadora" entre as duas, que contenha todas as funções que uma classe precisa usar da outra
+dashboard.get_telemetry(telemetry)
+
 bot_instance = DiscordClient(dashboard, telemetry, statistics)
 
 # roda o bot de forma assíncrona
