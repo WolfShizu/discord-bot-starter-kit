@@ -11,7 +11,7 @@ from app.core.telemetry import Telemetry
 from app.core.dashboard import TerminalDashboard
 from app.core.telemetry import SystemStatistics
 
-load_dotenv()
+_ = load_dotenv()
 discord_token = str(os.getenv("DISCORD_TOKEN"))
 
 dashboard = TerminalDashboard()
@@ -35,7 +35,7 @@ statistics = SystemStatistics(
 telemetry = Telemetry(dashboard, statistics)
 
 # TODO Criar uma classe "mediadora" entre as duas, que contenha todas as funções que uma classe precisa usar da outra
-dashboard.get_telemetry(telemetry)
+dashboard.set_telemetry(telemetry)
 
 bot_instance = DiscordClient(dashboard, telemetry, statistics)
 
