@@ -95,15 +95,15 @@ class DiscordClient(discord.Client):
         ...
 
     # <---- Eventos de Conexão ---->
-    async def on_connect(self):
+    async def on_connect(self) -> None:
         """Chamado quando o bot se conecta, seja na primeira conexão ou após uma queda"""
         ...
 
-    async def on_disconnect(self):
+    async def on_disconnect(self) -> None:
         """Chamado quando o bot se desconecta"""
         ...
 
-    async def on_resumed(self):
+    async def on_resumed(self) -> None:
         """Quando o bot se desconecta, mas retorna a conexão rapidamente, sem perder o cache"""
         ...
 

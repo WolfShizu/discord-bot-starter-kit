@@ -33,7 +33,7 @@ class Dispatcher:
     """
     Classe responsável por enviar os payloads para as funções, além de registrá-los
     """
-    def __init__(self, exception_handler: ExceptionHandler, telemetry: Telemetry):
+    def __init__(self, exception_handler: ExceptionHandler, telemetry: Telemetry) -> None:
         self.exception_handler = exception_handler
         self.commands_map: dict[str, BaseCommand] = {}
         self.listener_map: dict[ListenerEventType, list[BaseListener]] = {event_type: [] for event_type in ListenerEventType}
@@ -41,7 +41,7 @@ class Dispatcher:
 
         self.telemetry = telemetry
 
-    async def dispatch_message(self, message_payload: UserMessagePayload):
+    async def dispatch_message(self, message_payload: UserMessagePayload) -> None:
         telemetry_batch = TelemetryBatchFeaturePayload(
             user_id= message_payload.author_id,
             guild_id= message_payload.guild_id,
@@ -84,7 +84,7 @@ class Dispatcher:
         telemetry_batch.total_execution_time = duration
         await self.telemetry.record_batch(telemetry_batch)
 
-    async def _execute_command(self, command: BaseCommand, payload: UserMessagePayload):
+    async def _execute_command(self, command: BaseCommand, payload: UserMessagePayload) -> FeatureExecutionResult:
         start_time = time.perf_counter()
         sucess = False
         error_type = None
@@ -118,7 +118,7 @@ class Dispatcher:
 
         return result_payload
 
-    async def _execute_listener(self, listener: BaseListener, payload: UserMessagePayload):
+    async def _execute_listener(self, listener: BaseListener, payload: UserMessagePayload) -> FeatureExecutionResult:
         start_time = time.perf_counter()
         sucess = False
         error_type = None
@@ -151,7 +151,7 @@ class Dispatcher:
 
         return result_payload
 
-    def register_command(self, command_classe: Type[BaseCommand]):
+    def register_command(self, command_classe: Type[BaseCommand]) -> None:
         command_object = command_classe()
 
         command_name = command_object.command_name.lower()
@@ -174,7 +174,7 @@ class Dispatcher:
 
             self.commands_map[alias] = command_object
 
-    def register_listener(self, listener_class: Type[BaseListener]):
+    def register_listener(self, listener_class: Type[BaseListener]) -> None:
         listener_object = listener_class()
         raw_types = listener_object.listener_type
         listener_name = listener_object.listener_name

@@ -10,7 +10,7 @@ class Gatekeeper:
     """
     Classe responsável por verificar as mensagens, definir as permissões do usuário no payload e fazer o parse do comando
     """
-    def __init__(self, exception_handler: ExceptionHandler, default_prefix: str = "!"):
+    def __init__(self, exception_handler: ExceptionHandler, default_prefix: str = "!") -> None:
         self.default_prefix = default_prefix
 
         # TODO Buscar informação do banco de dados
@@ -45,7 +45,7 @@ class Gatekeeper:
             }
         }
 
-    def verify_message(self, message_payload: UserMessagePayload):
+    def verify_message(self, message_payload: UserMessagePayload) -> None:
         """
         Verifica se a mensagem tem algum conteúdo, se é um comando e as permissões do usuário.
         Essas informações são guardadas dentro do payload.
@@ -74,7 +74,7 @@ class Gatekeeper:
             self._parse_command(message_payload, bot_prefix)
 
 
-    def _set_user_access(self, message_payload: UserMessagePayload):
+    def _set_user_access(self, message_payload: UserMessagePayload) -> None:
         """
         Verifica e armazena as informações de acesso do usuário.
         Verifica se ele é um admin e se está bloqueado ou proibido de usar o canal.
@@ -88,29 +88,29 @@ class Gatekeeper:
 
         if not channel_access_map:
             # TODO Significa que o bot não foi configurado no servidor. Ele deve passar por esse processo primeiro. Tratar isso corretamente.
-            return message_payload
+            return
 
         if user_id in channel_access_map["admin_roles"]:
             message_payload.is_admin_role = True
-            return message_payload
+            return
 
         if user_id in channel_access_map["denied_users"]:
             message_payload.is_authorized_user = False
-            return message_payload
+            return
 
         if user_id in channel_access_map["allowed_users"]:
             message_payload.is_authorized_user = True
-            return message_payload
+            return
 
         if any(role_id in channel_access_map["denied_roles"] for role_id in user_roles):
             message_payload.is_authorized_role = False
-            return message_payload
+            return
 
         if any(role_id in channel_access_map["allowed_roles"] for role_id in user_roles):
             message_payload.is_authorized_role = True
-            return message_payload
+            return
 
-    def _parse_command(self, message_payload: UserMessagePayload, bot_prefix: str):
+    def _parse_command(self, message_payload: UserMessagePayload, bot_prefix: str) -> None:
         """
         Armazena o comando do bot (sem prefixo) e os argumentos
         """

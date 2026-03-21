@@ -22,7 +22,7 @@ class MessageHandler:
     Classe principal responsável por gerenciar as mensagens. Envia o payload do usuário
     para as outras funções, além de gerenciar o envio de mensagens do bot
     """
-    def __init__(self, exception_handler: ExceptionHandler, telemetry: Telemetry):
+    def __init__(self, exception_handler: ExceptionHandler, telemetry: Telemetry) -> None:
         self.exception_handler = exception_handler
         self.telemetry = telemetry
         self.gatekeeper = Gatekeeper(exception_handler)
@@ -30,7 +30,7 @@ class MessageHandler:
 
         self._load_commands_and_listeners()
 
-    async def handle_message(self, message: discord.Message):
+    async def handle_message(self, message: discord.Message) -> None:
         raw_message = message.content
         message_id = message.id
 
@@ -49,7 +49,7 @@ class MessageHandler:
 
         await self.dispatcher.dispatch_message(user_message_payload)
 
-    async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable):
+    async def send_message(self, response_payload: BotResponsePayload, channel: discord.abc.Messageable) -> None:
         """
         Função para envio de mensagens utilizada pelos comandos e listeners
         """
@@ -73,7 +73,7 @@ class MessageHandler:
             send_kwargs["content"] = response_payload.content
 
         try:
-            await channel.send(**send_kwargs)
+            _ = await channel.send(**send_kwargs)
             await self.telemetry.record_sent_message(response_payload)
         except Exception as error:
             # TODO Tratar corretamente o erro
@@ -81,7 +81,7 @@ class MessageHandler:
         return
 
 
-    def _load_commands_and_listeners(self):
+    def _load_commands_and_listeners(self) -> None:
         """
         Busca e registra todos os comandos e listeners em app/commands
         """
