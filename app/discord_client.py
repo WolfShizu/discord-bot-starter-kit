@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import cast
+from typing import cast, Any
 import asyncio
 from datetime import datetime
 
@@ -16,7 +16,7 @@ from app.core.telemetry import Telemetry, SystemStatistics
 from app.core.dashboard import TerminalDashboard
 
 class DiscordClient(discord.Client):
-    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics):
+    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics) -> None:
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
         intents.message_content = True
@@ -41,7 +41,7 @@ class DiscordClient(discord.Client):
 
     # <---- Configuração da Telemetria ---->
     async def setup_hook(self) -> None:
-        self.loop.create_task(self.telemetry_task())
+        _ = self.loop.create_task(self.telemetry_task())
 
     async def telemetry_task(self) -> None:
         await self.wait_until_ready()
@@ -76,7 +76,7 @@ class DiscordClient(discord.Client):
         return f"{hours:02}:{minutes:02}:{seconds:02}"
 
     # <---- Eventos de Mensagens ---->
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
             return
 
@@ -84,13 +84,13 @@ class DiscordClient(discord.Client):
         await self.message_handler.handle_message(message)
 
 
-    async def on_message_edit(self, message):
+    async def on_message_edit(self, message: discord.Message) -> None:
         ...
 
-    async def on_message_delete(self, message):
+    async def on_message_delete(self, message: discord.Message) -> None:
         ...
 
-    async def on_raw_message_delete(self, message):
+    async def on_raw_message_delete(self, message: discord.Message) -> None:
         """Para mensagens antigas que não estão no cache do bot"""
         ...
 
@@ -108,45 +108,45 @@ class DiscordClient(discord.Client):
         ...
 
     # <---- Eventos de Membros e Servidores ---->
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: Any) -> None:
         ...
 
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: Any) -> None:
         """Quando um usuário saiu ou foi expulso"""
         ...
 
-    async def on_member_update(self, before, after):
+    async def on_member_update(self, before: Any, after: Any) -> None:
         """Mudança de cargo, apelido ou status"""
         ...
 
-    async def on_guild_join(self, guild):
+    async def on_guild_join(self, guild: Any) -> None:
         """O bot foi adicionado em um servidor"""
         ...
 
     # <---- Eventos de Reação e Interação ---->
-    async def on_reaction_add(self, reaction, user):
+    async def on_reaction_add(self, reaction: Any, user: Any) -> None:
         ...
 
-    async def on_interaction(self, interaction):
+    async def on_interaction(self, interaction: Any) -> None:
         """Alguém usou slash command ou um botão"""
         ...
 
     # <---- Tratamento de erro ---->
-    async def on_error(self, event_method: str,*args, **kwargs):
+    async def on_error(self, event_method: str,*args: Any, **kwargs: Any) -> None:
         """Exceções da maioria dos eventos."""
         _, error_value, error_traceback = sys.exc_info()
 
         if error_value:
-            await self.exception_handler.handle_exception(
+            _ = await self.exception_handler.handle_exception(
                 discord_event=event_method,
                 event_arguments=args,
                 exception=error_value,
                 traceback=error_traceback
             )
 
-    async def on_app_command_error(self, interaction: discord.Interaction, exception: app_commands.AppCommandError):
+    async def on_app_command_error(self, interaction: discord.Interaction, exception: app_commands.AppCommandError) -> None:
         """Exceções específicas de comandos slash"""
-        await self.exception_handler.handle_exception(
+        _ = await self.exception_handler.handle_exception(
             discord_event= "slash_command",
             event_arguments= tuple([interaction]),
             exception= exception,

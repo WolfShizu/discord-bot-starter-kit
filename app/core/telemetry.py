@@ -72,7 +72,7 @@ class SystemStatistics:
     listener_statistics_map: dict[str, FeatureStatistics] = field(default_factory= dict)
 
 class Telemetry:
-    def __init__(self, dashboard: TerminalDashboard, statistics: SystemStatistics):
+    def __init__(self, dashboard: TerminalDashboard, statistics: SystemStatistics) -> None:
         self.dashboard = dashboard
         self.statistics = statistics
         self.total_data_recorded = 0
@@ -81,7 +81,7 @@ class Telemetry:
         self.commands_map: dict[str, FeatureStatistics] = {}
         self.listeners_map: dict[str, FeatureStatistics] = {}
 
-    async def record_batch(self, telemetry_batch: TelemetryBatchFeaturePayload):
+    async def record_batch(self, telemetry_batch: TelemetryBatchFeaturePayload) -> None:
         self.total_data_recorded += 1
 
         message_id = telemetry_batch.message_id
@@ -193,10 +193,10 @@ class Telemetry:
 
         return response
 
-    async def record_sent_message(self, response_payload: BotResponsePayload):
+    async def record_sent_message(self, response_payload: BotResponsePayload) -> None:
         self.statistics.messages_sent += 1
 
-    async def record_exception(self, exception_payload: TelemetryExceptionPayload):
+    async def record_exception(self, exception_payload: TelemetryExceptionPayload) -> None:
         self.statistics.total_exceptions += 1
 
         exception_log = [

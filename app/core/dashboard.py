@@ -207,7 +207,7 @@ class TerminalDashboard:
     def update_command_info(self):
         ...
 
-    def add_exception(self, exception_log: list[tuple[str, str] | str], default_style: str = "white") -> None:
+    def add_exception(self, exception_log: Sequence[tuple[str, str] | str], default_style: str = "white") -> None:
         # TODO Mover essa lógica para uma função auxiliar que é chamada pelo exception e log
         # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
         # E as mensagens rolarem de cima para baixo

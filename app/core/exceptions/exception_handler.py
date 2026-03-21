@@ -2,6 +2,8 @@
 # - Local do erro (feature, comando, listener, etc)
 # - Nome da feature/serviço, caso ele tenha um nome
 
+from typing import Any
+
 from types import TracebackType
 import traceback as tb_module
 
@@ -22,10 +24,11 @@ class ExceptionHandler:
     async def handle_exception(
             self,
             discord_event: str,
-            event_arguments: tuple,
+            event_arguments: tuple[Any],
             exception: BaseException | None,
             traceback: TracebackType | None
-    ):
+    ) -> TelemetryExceptionPayload | None:
+        # TODO Deve enviar os dados para a telemetria
         if exception is None:
             return
 
@@ -55,7 +58,7 @@ class ExceptionHandler:
             full_traceback= full_traceback_string
         )
 
-    async def handle_feature_exception(self, exception: BaseException, feature_name: str):
+    async def handle_feature_exception(self, exception: BaseException, feature_name: str) -> None:
         if exception is None:
             return
 
