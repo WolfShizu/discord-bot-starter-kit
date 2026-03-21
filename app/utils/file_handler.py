@@ -1,6 +1,6 @@
 import inspect
 
-def get_class_location(class_object: type |  object):
+def get_class_location(class_object: type |  object) -> dict[str, str]:
     try:
         if not isinstance(class_object, type):
             class_object = type(class_object)
