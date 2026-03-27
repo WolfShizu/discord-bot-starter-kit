@@ -10,7 +10,7 @@ from rich.text import Text
 from rich import box
 
 if TYPE_CHECKING:
-    from app.core.telemetry import SystemStatistics, Telemetry
+    from app.core.telemetry import SystemStatistics
 
 class TerminalDashboard:
     def __init__(self) -> None:
@@ -20,12 +20,7 @@ class TerminalDashboard:
         self.exception_log_buffer = []
         self.max_logs = 20
 
-        self.telemetry: "Telemetry"
-
         self._setup_layout()
-
-    def set_telemetry(self, telemetry: "Telemetry") -> None:
-        self.telemetry = telemetry
 
     def _setup_layout(self) -> None:
         self.layout.split_row(
@@ -130,8 +125,8 @@ class TerminalDashboard:
             Panel(info_data, title= "INFO", border_style= "cyan")
         )
 
-        most_used_commands = self.telemetry.get_most_used_commands_data()
-        slowest_commands = self.telemetry.get_slowest_commands_data()
+        most_used_commands = statistics.get_most_used_commands_data()
+        slowest_commands = statistics.get_slowest_commands_data()
 
         most_used_commands_table = self._create_most_used_commands_table(most_used_commands)
         slowest_commands_table = self._create_slowest_commands_table(slowest_commands)

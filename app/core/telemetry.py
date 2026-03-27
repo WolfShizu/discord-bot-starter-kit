@@ -70,6 +70,44 @@ class SystemStatistics:
     commands_statistics_map: dict[str, FeatureStatistics] = field(default_factory= dict)
     listener_statistics_map: dict[str, FeatureStatistics] = field(default_factory= dict)
 
+    def get_most_used_commands_data(self) -> list[dict[str, Any]]:
+        """Retorna os 5 comandos mais executados junto da quantidade de execuções"""
+        most_used_commands = sorted(
+            self.commands_statistics_map.items(),
+            key= lambda data: data[1].execution_count,
+            reverse= True
+        )[:5]
+
+        response = [
+            {
+                "command_name": most_used_command[1].feature_name,
+                "execution_count": most_used_command[1].execution_count,
+                "average_execution_time": most_used_command[1].average_execution_time
+            }
+            for most_used_command in most_used_commands
+        ]
+
+        return response
+
+    def get_slowest_commands_data(self) -> list[dict[str, Any]]:
+        """Retorna os 5 comandos mais lentos junto do tempo de execução total e médio deles"""
+        slowest_commands = sorted(
+            self.commands_statistics_map.items(),
+            key= lambda data: data[1].slowest_execution_time,
+            reverse= True
+        )[:5]
+
+        response = [
+            {
+                "command_name": slowest_command[1].feature_name,
+                "slowest_execution_time": slowest_command[1].slowest_execution_time,
+                "average_execution_time": slowest_command[1].average_execution_time
+            }
+            for slowest_command in slowest_commands
+        ]
+
+        return response
+
 class Telemetry:
     def __init__(self, dashboard: TerminalDashboard, statistics: SystemStatistics) -> None:
         self.dashboard = dashboard
@@ -153,44 +191,6 @@ class Telemetry:
                     feature_stats.average_execution_time = average_execution_time
 
         self.dashboard.add_log(log_message)
-
-    def get_most_used_commands_data(self) -> list[dict[str, Any]]:
-        """Retorna os 5 comandos mais executados junto da quantidade de execuções"""
-        most_used_commands = sorted(
-            self.statistics.commands_statistics_map.items(),
-            key= lambda data: data[1].execution_count,
-            reverse= True
-        )[:5]
-
-        response = [
-            {
-                "command_name": most_used_command[1].feature_name,
-                "execution_count": most_used_command[1].execution_count,
-                "average_execution_time": most_used_command[1].average_execution_time
-            }
-            for most_used_command in most_used_commands
-        ]
-
-        return response
-
-    def get_slowest_commands_data(self) -> list[dict[str, Any]]:
-        """Retorna os 5 comandos mais lentos junto do tempo de execução total e médio deles"""
-        slowest_commands = sorted(
-            self.statistics.commands_statistics_map.items(),
-            key= lambda data: data[1].slowest_execution_time,
-            reverse= True
-        )[:5]
-
-        response = [
-            {
-                "command_name": slowest_command[1].feature_name,
-                "slowest_execution_time": slowest_command[1].slowest_execution_time,
-                "average_execution_time": slowest_command[1].average_execution_time
-            }
-            for slowest_command in slowest_commands
-        ]
-
-        return response
 
     async def record_sent_message(self, response_payload: BotResponsePayload) -> None:
         self.statistics.messages_sent += 1
