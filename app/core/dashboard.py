@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from app.core.telemetry import SystemStatistics, Telemetry
 
 class TerminalDashboard:
-    def __init__(self):
+    def __init__(self) -> None:
         self.layout = Layout()
 
         self.log_buffer = []
@@ -24,10 +24,10 @@ class TerminalDashboard:
 
         self._setup_layout()
 
-    def get_telemetry(self, telemetry: "Telemetry"):
+    def set_telemetry(self, telemetry: "Telemetry") -> None:
         self.telemetry = telemetry
 
-    def _setup_layout(self):
+    def _setup_layout(self) -> None:
         self.layout.split_row(
             Layout(name= "column_1"),
             Layout(name= "column_2"),
@@ -74,7 +74,7 @@ class TerminalDashboard:
             )
         )
 
-    def add_log(self, message: Sequence[str | tuple[str, str]], default_style: str = "white"):
+    def add_log(self, message: Sequence[str | tuple[str, str]], default_style: str = "white") -> None:
             # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
             # E as mensagens rolarem de cima para baixo
             timestamp = datetime.now().strftime("%H:%M:%S")
@@ -102,7 +102,7 @@ class TerminalDashboard:
                 Panel(Group(*self.log_buffer), title="Live Logs", border_style="blue")
             )
 
-    def update_statistics(self, statistics: "SystemStatistics"):
+    def update_statistics(self, statistics: "SystemStatistics") -> None:
         system_data = (
             f"[bold white]Status:[/] [green]{statistics.system_status}[/]\n"
             f"[bold white]connect As:[/] [yellow]{statistics.connected_as}[/]\n"
@@ -207,7 +207,7 @@ class TerminalDashboard:
     def update_command_info(self):
         ...
 
-    def add_exception(self, exception_log, default_style: str = "white"):
+    def add_exception(self, exception_log: Sequence[tuple[str, str] | str], default_style: str = "white") -> None:
         # TODO Mover essa lógica para uma função auxiliar que é chamada pelo exception e log
         # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
         # E as mensagens rolarem de cima para baixo
@@ -235,10 +235,10 @@ class TerminalDashboard:
             Panel(Group(*self.exception_log_buffer), title="Live Logs", border_style="blue")
         )
 
-    def update_empty_panel(self):
+    def update_empty_panel(self) -> None:
         ...
 
-    def _get_starfield_background(self):
+    def _get_starfield_background(self) -> Text:
         lines = 100
         lenght = 200
 
