@@ -3,7 +3,6 @@
 # Os dados que serão recebidos devem ser registrados e configurados (se devem aparecer no terminal, se deve ser contado, etc)
 # Também terá um aviso caso algum dado não esteja registrado
 from typing import Any
-from types import TracebackType
 from dataclasses import dataclass, field
 from datetime import datetime
 
