@@ -137,7 +137,7 @@ class DiscordClient(discord.Client):
         _, error_value, error_traceback = sys.exc_info()
 
         if error_value:
-            _ = await self.exception_handler.handle_exception(
+            _ = await self.exception_handler.handle_discord_exception(
                 discord_event=event_method,
                 event_arguments=args,
                 exception=error_value,
@@ -146,7 +146,7 @@ class DiscordClient(discord.Client):
 
     async def on_app_command_error(self, interaction: discord.Interaction, exception: app_commands.AppCommandError) -> None:
         """Exceções específicas de comandos slash"""
-        _ = await self.exception_handler.handle_exception(
+        _ = await self.exception_handler.handle_discord_exception(
             discord_event= "slash_command",
             event_arguments= tuple([interaction]),
             exception= exception,

@@ -21,13 +21,14 @@ class ExceptionHandler:
             ExceptionSeverity.CRITICAL: "ALTA"
         }
 
-    async def handle_exception(
+    async def handle_discord_exception(
             self,
             discord_event: str,
             event_arguments: tuple[Any],
             exception: BaseException | None,
             traceback: TracebackType | None
     ) -> TelemetryExceptionPayload | None:
+        """Trata a exceção capturada pelo discord"""
         # TODO Deve enviar os dados para a telemetria
         if exception is None:
             return
