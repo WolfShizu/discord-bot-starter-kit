@@ -1,5 +1,3 @@
-# TODO Adicionar uma função para inicar os painéis (remove os dados base deles)
-
 from datetime import datetime
 from typing import TYPE_CHECKING, Sequence, Any
 import random
@@ -67,7 +65,16 @@ class TerminalDashboard:
                 title="[bold purple] ◈ WOLFSHIZU // UNIT-01 ◈ [/]",
                 border_style="purple",
                 box= box.SQUARE,
+            )
+        )
 
+        self.layout["column_2"]["exceptions"].update(
+            Panel(
+                Group(
+                    Text("Nenhuma exceção registrada no momento.", style= "green")
+                ),
+                title= "Exceptions",
+                border_style= "blue"
             )
         )
 
