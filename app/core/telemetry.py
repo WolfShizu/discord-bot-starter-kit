@@ -144,28 +144,15 @@ class Telemetry:
         for telemetry_data in telemetry_batch.features_executed:
             self.statistics.features_executed +=1
 
-            match telemetry_data.feature_type:
-                case FeatureType.COMMAND:
-                    self.statistics.commands_executed += 1
-
-                case FeatureType.LISTENER:
-                    self.statistics.listeners_executed += 1
-
-                case _:
-                    # TODO Tratar corretamente o erro
-                    ...
-
             target_map = None
             match telemetry_data.feature_type:
                 case FeatureType.COMMAND:
+                    self.statistics.commands_executed += 1
                     target_map = self.statistics.commands_statistics_map
 
                 case FeatureType.LISTENER:
+                    self.statistics.listeners_executed += 1
                     target_map = self.statistics.listener_statistics_map
-
-                case _:
-                    # TODO Tratar corretamente o erro
-                    ...
 
             if target_map is not None:
                 if telemetry_data.feature_name not in target_map:
