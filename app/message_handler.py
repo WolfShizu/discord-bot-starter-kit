@@ -17,6 +17,10 @@ from app.dispatcher import Dispatcher
 
 from app.core.telemetry import Telemetry
 from app.core.exceptions.exception_handler import ExceptionHandler
+from app.core.exceptions.main_pipeline.message_handler_exceptions import (
+    UnableToSendMessage,
+    UnableToGetChannelId
+)
 
 class MessageHandler:
     """
@@ -62,8 +66,11 @@ class MessageHandler:
                 )
                 send_kwargs["reference"] = reference
             else:
-                # TODO Tratar corretamente o erro
-                print("Aviso: Não foi possível obter o ID do canal para criar a referência da mensagem. Enviando sem referência.")
+                await self.exception_handler.handle_default_exception(
+                    exception= UnableToGetChannelId(
+                        "Aviso: Não foi possível obter o ID do canal para criar a referência da mensagem. Enviando sem referência."
+                    ),
+                )
 
         if response_payload.embed:
             send_kwargs["embed"] = response_payload.embed
@@ -75,10 +82,10 @@ class MessageHandler:
             _ = await channel.send(**send_kwargs)
             await self.telemetry.record_sent_message(response_payload)
         except Exception as error:
-            # TODO Tratar corretamente o erro
-            print(f"Falha no envio de mensagem: {error}")
+            await self.exception_handler.handle_default_exception(
+                exception= UnableToSendMessage(f"Falha no envio de mensagem: {error}")
+            )
         return
-
 
     async def load_commands_and_listeners(self) -> None:
         """
