@@ -15,7 +15,7 @@ class TelemetryFeaturePayload:
     success: bool
     user_id: int
     guild_id: int | None
-    error_type: str | None = None # TODO Adicionar exceções personalizadas
+    error_type: str | None = None
     timestamp: datetime = field(default_factory= datetime.now)
 
 @dataclass
