@@ -2,6 +2,7 @@ import functools
 import os
 import importlib
 import inspect
+
 from typing import cast
 
 import discord
@@ -16,6 +17,10 @@ from app.dispatcher import Dispatcher
 
 from app.core.telemetry import Telemetry
 from app.core.exceptions.exception_handler import ExceptionHandler
+from app.core.exceptions.main_pipeline.message_handler_exceptions import (
+    UnableToSendMessage,
+    UnableToGetChannelId
+)
 
 class MessageHandler:
     """
@@ -27,8 +32,6 @@ class MessageHandler:
         self.telemetry = telemetry
         self.gatekeeper = Gatekeeper(exception_handler)
         self.dispatcher = Dispatcher(exception_handler, telemetry)
-
-        self._load_commands_and_listeners()
 
     async def handle_message(self, message: discord.Message) -> None:
         raw_message = message.content
@@ -63,8 +66,11 @@ class MessageHandler:
                 )
                 send_kwargs["reference"] = reference
             else:
-                # TODO Tratar corretamente o erro
-                print("Aviso: Não foi possível obter o ID do canal para criar a referência da mensagem. Enviando sem referência.")
+                await self.exception_handler.handle_default_exception(
+                    exception= UnableToGetChannelId(
+                        "Aviso: Não foi possível obter o ID do canal para criar a referência da mensagem. Enviando sem referência."
+                    ),
+                )
 
         if response_payload.embed:
             send_kwargs["embed"] = response_payload.embed
@@ -76,12 +82,12 @@ class MessageHandler:
             _ = await channel.send(**send_kwargs)
             await self.telemetry.record_sent_message(response_payload)
         except Exception as error:
-            # TODO Tratar corretamente o erro
-            print(f"Falha no envio de mensagem: {error}")
+            await self.exception_handler.handle_default_exception(
+                exception= UnableToSendMessage(f"Falha no envio de mensagem: {error}")
+            )
         return
 
-
-    def _load_commands_and_listeners(self) -> None:
+    async def load_commands_and_listeners(self) -> None:
         """
         Busca e registra todos os comandos e listeners em app/commands
         """
@@ -109,7 +115,4 @@ class MessageHandler:
                                     self.dispatcher.register_listener(object_class)
 
                     except Exception as error:
-                        # TODO Esse erro deve ser tratado pelo exception handler. Deve ser feito um melhor tratamento do erro para que ele apareça corretamente no dashboard (atualmente não está aparecendo)
-                        # TODO Melhorar tratamento de erro
-                        print(f"Erro ao carregar módulo: {module_path}: {error}")
-                        self.telemetry.record_basic_exception(f"Erro ao carregar módulo: {module_path}: {error}")
+                        await self.exception_handler.handle_feature_exception(error, feature_name= "no_name")

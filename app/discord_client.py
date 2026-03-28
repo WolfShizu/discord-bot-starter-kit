@@ -16,7 +16,7 @@ from app.core.telemetry import Telemetry, SystemStatistics
 from app.core.dashboard import TerminalDashboard
 
 class DiscordClient(discord.Client):
-    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics) -> None:
+    def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics, exception_handler: ExceptionHandler) -> None:
         # Configura os privilégios do bot e o que ele receberá
         intents = discord.Intents.default()
         intents.message_content = True
@@ -28,7 +28,7 @@ class DiscordClient(discord.Client):
         self.dashboard = dashboard
         self.telemetry = telemetry
 
-        self.exception_handler = ExceptionHandler()
+        self.exception_handler = exception_handler
         self.message_handler = MessageHandler(self.exception_handler, telemetry)
 
         self.statistics = statistics
@@ -42,6 +42,7 @@ class DiscordClient(discord.Client):
     # <---- Configuração da Telemetria ---->
     async def setup_hook(self) -> None:
         _ = self.loop.create_task(self.telemetry_task())
+        await self.message_handler.load_commands_and_listeners()
 
     async def telemetry_task(self) -> None:
         await self.wait_until_ready()
@@ -137,7 +138,7 @@ class DiscordClient(discord.Client):
         _, error_value, error_traceback = sys.exc_info()
 
         if error_value:
-            _ = await self.exception_handler.handle_exception(
+            await self.exception_handler.handle_discord_exception(
                 discord_event=event_method,
                 event_arguments=args,
                 exception=error_value,
@@ -146,7 +147,7 @@ class DiscordClient(discord.Client):
 
     async def on_app_command_error(self, interaction: discord.Interaction, exception: app_commands.AppCommandError) -> None:
         """Exceções específicas de comandos slash"""
-        _ = await self.exception_handler.handle_exception(
+        await self.exception_handler.handle_discord_exception(
             discord_event= "slash_command",
             event_arguments= tuple([interaction]),
             exception= exception,

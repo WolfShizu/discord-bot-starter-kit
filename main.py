@@ -7,6 +7,7 @@ from app.discord_client import DiscordClient
 # <--- Telemetria e terminal --->
 from rich.live import Live
 
+from app.core.exceptions.exception_handler import ExceptionHandler
 from app.core.telemetry import Telemetry
 from app.core.dashboard import TerminalDashboard
 from app.core.telemetry import SystemStatistics
@@ -34,15 +35,14 @@ statistics = SystemStatistics(
 
 telemetry = Telemetry(dashboard, statistics)
 
-# TODO Criar uma classe "mediadora" entre as duas, que contenha todas as funções que uma classe precisa usar da outra
-dashboard.set_telemetry(telemetry)
+exception_handler = ExceptionHandler(telemetry)
 
-bot_instance = DiscordClient(dashboard, telemetry, statistics)
+bot_instance = DiscordClient(dashboard, telemetry, statistics, exception_handler)
 
 # roda o bot de forma assíncrona
 async def main():
-    with Live(dashboard.layout, refresh_per_second=4, screen=True):
-        dashboard.add_log("Iniciando sistema", default_style="yellow")
+    with Live(dashboard.layout, refresh_per_second= 4, screen= True):
+        dashboard.add_log("Iniciando sistema", default_style= "yellow")
 
         async with bot_instance:
             await bot_instance.start(token= discord_token)

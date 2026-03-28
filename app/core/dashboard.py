@@ -10,7 +10,7 @@ from rich.text import Text
 from rich import box
 
 if TYPE_CHECKING:
-    from app.core.telemetry import SystemStatistics, Telemetry
+    from app.core.telemetry import SystemStatistics
 
 class TerminalDashboard:
     def __init__(self) -> None:
@@ -18,14 +18,9 @@ class TerminalDashboard:
 
         self.log_buffer = []
         self.exception_log_buffer = []
-        self.max_logs = 20
-
-        self.telemetry: "Telemetry"
+        self.buffer_size = 20
 
         self._setup_layout()
-
-    def set_telemetry(self, telemetry: "Telemetry") -> None:
-        self.telemetry = telemetry
 
     def _setup_layout(self) -> None:
         self.layout.split_row(
@@ -70,37 +65,25 @@ class TerminalDashboard:
                 title="[bold purple] ◈ WOLFSHIZU // UNIT-01 ◈ [/]",
                 border_style="purple",
                 box= box.SQUARE,
+            )
+        )
 
+        self.layout["column_2"]["exceptions"].update(
+            Panel(
+                Group(
+                    Text("Nenhuma exceção registrada no momento.", style= "green")
+                ),
+                title= "Exceptions",
+                border_style= "blue"
             )
         )
 
     def add_log(self, message: Sequence[str | tuple[str, str]], default_style: str = "white") -> None:
-            # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
-            # E as mensagens rolarem de cima para baixo
-            timestamp = datetime.now().strftime("%H:%M:%S")
+        self._update_log_panel(message, self.log_buffer, "logs", "System Logs", default_style)
 
-            parsed_message = []
+    def add_exception(self, exception_log: Sequence[tuple[str, str] | str], default_style: str = "red") -> None:
 
-            for message_chunk in message:
-                if isinstance(message_chunk, str):
-                    parsed_message.append((message_chunk, default_style))
-                else:
-                    parsed_message.append(message_chunk)
-
-            log_line = Text.assemble(
-                (f"[{timestamp}] ", "cyan"),
-                *parsed_message
-            )
-
-            # Insere como primeiro da lista
-            self.log_buffer.insert(0, log_line)
-
-            if len(self.log_buffer) > self.max_logs:
-                self.log_buffer.pop()
-
-            self.layout["column_2"]["logs"].update(
-                Panel(Group(*self.log_buffer), title="Live Logs", border_style="blue")
-            )
+        self._update_log_panel(exception_log, self.exception_log_buffer, "exceptions", "Exceptions", default_style)
 
     def update_statistics(self, statistics: "SystemStatistics") -> None:
         system_data = (
@@ -130,8 +113,8 @@ class TerminalDashboard:
             Panel(info_data, title= "INFO", border_style= "cyan")
         )
 
-        most_used_commands = self.telemetry.get_most_used_commands_data()
-        slowest_commands = self.telemetry.get_slowest_commands_data()
+        most_used_commands = statistics.get_most_used_commands_data()
+        slowest_commands = statistics.get_slowest_commands_data()
 
         most_used_commands_table = self._create_most_used_commands_table(most_used_commands)
         slowest_commands_table = self._create_slowest_commands_table(slowest_commands)
@@ -142,6 +125,40 @@ class TerminalDashboard:
 
         self.layout["column_1"]["commands_info_line"]["slowest_commands"].update(
             Panel(slowest_commands_table, title= "Slowest Commands", border_style= "blue")
+        )
+
+    def _update_log_panel(
+            self,
+            log_chunks: Sequence[tuple[str, str] | str],
+            buffer: list[Text],
+            panel_name: str,
+            panel_title: str,
+            default_style: str = "white"
+        ):
+        # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
+        # E as mensagens rolarem de cima para baixo
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        parsed_message = []
+
+        for log_chunk in log_chunks:
+            if isinstance(log_chunk, str):
+                parsed_message.append((log_chunk, default_style))
+            else:
+                parsed_message.append(log_chunk)
+
+        log_line = Text.assemble(
+            (f"[{timestamp}] ", "cyan"),
+            *parsed_message
+        )
+
+        # Insere como primeiro da lista
+        buffer.insert(0, log_line)
+
+        if len(buffer) > self.buffer_size:
+            _ = buffer.pop()
+
+        self.layout["column_2"][panel_name].update(
+            Panel(Group(*buffer), title= panel_title, border_style= "blue")
         )
 
     def _create_most_used_commands_table(self, most_used_commands: list[dict[str, Any]]) -> Table:
@@ -203,40 +220,6 @@ class TerminalDashboard:
             table.add_row(*row)
 
         return table
-
-    def update_command_info(self):
-        ...
-
-    def add_exception(self, exception_log: Sequence[tuple[str, str] | str], default_style: str = "white") -> None:
-        # TODO Mover essa lógica para uma função auxiliar que é chamada pelo exception e log
-        # TODO Melhorar a aba de logs. Deve buscar o tamanho do layout para exibir a quantidade corretas de linhas
-        # E as mensagens rolarem de cima para baixo
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        parsed_message = []
-
-        for log_chunk in exception_log:
-            if isinstance(log_chunk, str):
-                parsed_message.append((log_chunk, default_style))
-            else:
-                parsed_message.append(log_chunk)
-
-        log_line = Text.assemble(
-            (f"[{timestamp}] ", "cyan"),
-            *parsed_message
-        )
-
-        # Insere como primeiro da lista
-        self.exception_log_buffer.insert(0, log_line)
-
-        if len(self.exception_log_buffer) > self.max_logs:
-            self.exception_log_buffer.pop()
-
-        self.layout["column_2"]["exceptions"].update(
-            Panel(Group(*self.exception_log_buffer), title="Live Logs", border_style="blue")
-        )
-
-    def update_empty_panel(self) -> None:
-        ...
 
     def _get_starfield_background(self) -> Text:
         lines = 100
