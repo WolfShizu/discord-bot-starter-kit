@@ -34,12 +34,11 @@ class TelemetryBatchFeaturePayload:
 @dataclass
 class TelemetryExceptionPayload:
     severity: ExceptionSeverity
-    name: str
+    type: str
     message: str
-    discord_event: str
-    arguments: tuple
     trimmed_traceback: str
     full_traceback: str
+    extra_data: dict[str, Any]
 
 @dataclass
 class FeatureStatistics:
@@ -199,13 +198,21 @@ class Telemetry:
         self.statistics.total_exceptions += 1
 
         exception_log = [
-            f"name: {exception_payload.name}",
-            f"severity: {exception_payload.severity}",
-            f"message: {exception_payload.message}",
-            f"discord event: {exception_payload.discord_event}",
-            f"arguments: {exception_payload.arguments}",
-            f"trimmed traceback: {exception_payload.trimmed_traceback}"
+            f"exception type: {exception_payload.type}\n",
+            f"severity: {exception_payload.severity}\n",
+            f"message: {exception_payload.message}\n",
         ]
+
+        if exception_payload.extra_data.get("discord_data"):
+            discord_data = exception_payload.extra_data["discord_data"]
+
+            discord_event = discord_data.get("discord_event")
+            event_arguments = discord_data.get("event_arguments")
+
+            exception_log.append(f"discord event: {discord_event}\n")
+            exception_log.append(f"arguments: {event_arguments}\n")
+
+        exception_log.append(f"trimmed traceback: {exception_payload.trimmed_traceback}")
 
         self.dashboard.add_exception(exception_log, default_style= "red")
 
