@@ -1,10 +1,16 @@
-from typing import cast
+from typing import cast, Any
 
 import discord
 
 from app.models.message_payload import UserMessagePayload
 
 from app.core.exceptions.exception_handler import ExceptionHandler
+
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
+from app.services.database.engine import get_db_session
+from app.services.database.models.guild_config import GuildConfig, ChannelConfig
 
 class Gatekeeper:
     """
@@ -44,6 +50,9 @@ class Gatekeeper:
                 }
             }
         }
+
+        self.guild_configuration: dict[int, dict[str, str | list[int]]] = {}
+        self.channels_configuration: dict[int, dict[str, list[int]]] = {}
 
     def verify_message(self, message_payload: UserMessagePayload) -> None:
         """
@@ -120,3 +129,47 @@ class Gatekeeper:
         raw_command = parts[0]
         message_payload.command_name = raw_command.removeprefix(bot_prefix).lower()
         message_payload.arguments = parts[1:]
+
+    async def _load_configs(self):
+        async with get_db_session() as session:
+            query = select(GuildConfig).options(selectinload(GuildConfig.channels))
+            result = await session.execute(query)
+
+            guilds = result.scalars().all()
+
+            for guild in guilds:
+                self.guild_configuration[guild.guild_id] = {
+                    "prefix": guild.prefix,
+                    "admin_roles": guild.admin_roles,
+                    "allowed_roles": guild.allowed_roles,
+                    "denied_roles": guild.denied_roles
+                }
+
+                for channel in guild.channels:
+                    self.channels_configuration[channel.channel_id] = {
+                        "allowed_roles": channel.allowed_roles,
+                        "denied_roles": channel.denied_roles,
+                        "allowed_users": channel.allowed_users,
+                        "denied_users": channel.denied_users
+                    }
+
+    async def _get_guild_prefix(self):
+        """Busca os dados do buffer"""
+
+    async def _set_guild_prefix(self):
+        """Salva os dados no banco, além de atualizar o buffer"""
+
+    async def _get_guild_acess_config(self):
+        """Busca os dados do buffer"""
+
+    async def _get_channel_acess_config(self):
+        """Busca os dados do buffer"""
+
+    async def _set_guild_acess_config(self):
+        """Salva os dados no banco, além de atualizar o buffer"""
+
+    async def _set_channel_acess_config(self):
+        """Salva os dados no banco, além de atualizar o buffer"""
+
+    async def _update_confgs(self):
+        """Atualiza o buffer com os dados do banco"""
