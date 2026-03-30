@@ -15,6 +15,8 @@ from app.core.exceptions.exception_handler import ExceptionHandler
 from app.core.telemetry import Telemetry, SystemStatistics
 from app.core.dashboard import TerminalDashboard
 
+from app.services.database.base.engine import setup_database
+
 class DiscordClient(discord.Client):
     def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics, exception_handler: ExceptionHandler) -> None:
         # Configura os privilégios do bot e o que ele receberá
@@ -42,6 +44,9 @@ class DiscordClient(discord.Client):
     # <---- Configuração da Telemetria ---->
     async def setup_hook(self) -> None:
         _ = self.loop.create_task(self.telemetry_task())
+
+        await setup_database()
+
         await self.message_handler.load_commands_and_listeners()
 
     async def telemetry_task(self) -> None:
