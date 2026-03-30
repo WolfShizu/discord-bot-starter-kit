@@ -15,7 +15,7 @@ from app.core.exceptions.exception_handler import ExceptionHandler
 from app.core.telemetry import Telemetry, SystemStatistics
 from app.core.dashboard import TerminalDashboard
 
-from app.services.database.base.engine import setup_database
+from app.services.database.engine import setup_database
 
 class DiscordClient(discord.Client):
     def __init__(self, dashboard: TerminalDashboard, telemetry: Telemetry, statistics: SystemStatistics, exception_handler: ExceptionHandler) -> None:
